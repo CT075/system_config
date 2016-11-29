@@ -2,5 +2,38 @@
 # 'init' - set execute permissions on this file for usability
 #
 # A setup script to be used in conjunction with the 'CT075/sys-setup' repo on
-# Github to initialize the system, including rc files.
+# Github to initialize my user system (mostly rc files but also git setup etc).
+
+# Equivalent to DOS's @echo off
+set -x
+
+olddir=~/dotfiles_old
+
+# If the "dotfiles" directory doesn't exist, then we're probably running this
+# script by itself, so we need to clone our files down.
+if [ ! -d "dotfiles" ]; then
+  echo "No dotfiles directory found"
+  echo "Assuming init is being run as standalone script"
+  cd
+  # assume that git exists
+  echo "git name: "
+  read -e name
+  echo "git email: "
+  read -e email
+  git config --global user.name "$name"
+  git config --global user.email $email
+  git clone https://github.com/CT075/sys-setup.git sys_base
+  cd ~/sys_base
+fi
+
+echo -n "Creating $olddir for backup of any existing dotfiles in ~ ..."
+mkdir -p $olddir
+echo "done"
+
+for file in $(ls dotfiles); do
+  echo "Moving existing dotfiles from ~ to $olddir"
+  mv ~/.$file $olddir
+  echo "Symlinking $file from dotfiles to home directory."
+  ln -s $(pwd)/dotfiles/$file ~/.$file
+done
 
