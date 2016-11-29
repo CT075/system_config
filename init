@@ -1,0 +1,6 @@
+#!/bin/bash
+# 'init' - set execute permissions on this file for usability
+#
+# A setup script to be used in conjunction with the 'CT075/sys-setup' repo on
+# Github to initialize the system, including rc files.
+
