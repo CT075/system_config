@@ -59,10 +59,10 @@ set cmdheight=2
 set notimeout ttimeout ttimeoutlen=200
 
 " Map ctrl-arrow to shifting buffers
-map <C-Up> :bnext<ENTER>
-map <C-Down> :bprevious<ENTER>
+map <C-Up> :bnext<CR>
+map <C-Down> :bprevious<CR>
 
-map <C-O> :NERDTree<ENTER>
+map <C-O> :NERDTree<CR>
 
 nnoremap gV `[v`]
 
@@ -75,6 +75,11 @@ let mapleader=","
 
 " gundo tree
 nnoremap <F2> :GundoToggle<CR>
+
+" make and associated convenience
+nnoremap <F12> :make<CR>
+nnoremap <C-Right> :cn<CR>
+nnoremap <C-Left> :cp<CR>
 
 " Search as characters are entered
 set incsearch
