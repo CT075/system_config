@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -x
+
+cd ~/sys_base/dotfiles
+git add -A
+echo "Commit message:"
+read -e msg
+git commit -m "$msg"
+git push
+
