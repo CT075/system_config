@@ -2,6 +2,8 @@
 
 set -x
 
+cd ~/sys_base
+git pull
 cd ~/sys_base/dotfiles
 git add -A
 echo "Commit message:"
