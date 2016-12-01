@@ -89,3 +89,8 @@ set hlsearch
 " Save session
 nnoremap <leader>s :mksession<CR>
 
+" Specific syntax things
+
+" Make indentation in C work nicely
+set cinoptions=l1
+
