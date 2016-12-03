@@ -96,11 +96,6 @@ PROMPT_COMMAND='CurDir=`pwd|sed -e "s!$HOME!~!"|sed -re "s!([^/])[^/]+/!\1/!g"`'
 PS1='[\t]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:$CurDir\$ '
 
 export PATH=$PATH:/afs/andrew/course/15/122/bin
-
-if [ -d "~/sys_base" ]; then
-  alias update="~/sys_base/update"
-fi
-
 # ----- GPI-specific configuration -------------------------------------------
 source ~/.bashrc_gpi
 
