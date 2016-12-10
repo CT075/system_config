@@ -22,7 +22,7 @@ if [ ! -d "dotfiles" ]; then
   read -e email
   git config --global user.name "$name"
   git config --global user.email $email
-  git clone https://github.com/CT075/sys-setup.git sys_base
+  git clone https://github.com/CT075/sys_base.git sys_base
   cd ~/sys_base
 fi
 
