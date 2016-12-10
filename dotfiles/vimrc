@@ -89,6 +89,10 @@ set hlsearch
 " Save session
 nnoremap <leader>s :mksession<CR>
 
+" Tab things
+nnoremap <Tab> >>
+nnoremap <S-Tab> <<
+
 " Specific syntax things
 
 " Make indentation in C work nicely
