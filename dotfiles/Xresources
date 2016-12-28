@@ -5,5 +5,5 @@ xterm*saveLines:2000
 xterm*reverseVideo:on
 xterm*font:7x14
 xterm*utf8:2
-xterm*termName:xterm-256color
+xterm*termName:xterm-shell
 

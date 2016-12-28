@@ -25,6 +25,9 @@ Plugin 'sjl/gundo.vim'
 " NERD tree
 Plugin 'scrooloose/nerdtree'
 
+" Haskell indentation
+Plugin 'itchyny/vim-haskell-indent'
+
 call vundle#end()
 
 " Helpful information: cursor position in bottom right, line numbers on
@@ -86,12 +89,23 @@ set incsearch
 " Highlight matches
 set hlsearch
 
+" Save
+nnoremap <leader>w :w<CR>
+
 " Save session
 nnoremap <leader>s :mksession<CR>
 
 " Tab things
 nnoremap <Tab> >>
 nnoremap <S-Tab> <<
+
+" Let's not leave swap files cluttering everything while just perusing with
+" gvim, shall we?
+if has("gui_running")
+  set noswapfile
+  set nobackup
+  set nowritebackup
+endif
 
 " Specific syntax things
 
