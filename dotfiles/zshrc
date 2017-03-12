@@ -1,100 +1,72 @@
-# Path to your oh-my-zsh installation.
-  export ZSH=/home/$USER/.oh-my-zsh
-  export TERM="xterm-256color"
-
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
-ZSH_THEME="powerlevel9k/powerlevel9k"
-
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion. Case
-# sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
-
-# Uncomment the following line to change how often to auto-update (in days).
-export UPDATE_ZSH_DAYS=12
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
-
-# User configuration
-
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/usr/lib/smlnj/bin"
-# export MANPATH="/usr/local/man:$MANPATH"
-
-source $ZSH/oh-my-zsh.sh
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# ssh
-# export SSH_KEY_PATH="~/.ssh/dsa_id"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
+# Cameron "CT075" Wong
 #
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+# My general-purpose zsh runtime config file. For the most part, this file
+# handles most of the main logic that moves around between my various machines.
+# By exporting specific environment variables in the file "~/.host", each
+# machine can very cleanly selectively choose which parts of my overall setup
+# are sourced or not.
+#
+# Draws very heavy inspiration from Jake Zimmerman's dotfiles repository.
 
-alias pacman='sudo pacman'
-alias ll='ls -l'
-alias la='ls -a'
+# Load configurations for this host
+source ~/.host
 
-POWERLEVEL9K_VIRTUALENV_BACKGROUND='161'
-POWERLEVEL9K_VIRTUALENV_FOREGROUND='007'
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir virtualenv)
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(vcs time)
-POWERLEVEL9K_SHORTEN_DIR_LENGTH=1
-POWERLEVEL9K_SHORTEN_DELIMITER=""
-POWERLEVEL9K_SHORTEN_STRATEGY="truncate_from_right"
+# This is needed by some of the other setup modules.
+export SYSBASE_HOME="$HOME/sys_base"
 
-export SMLNJ_HOME="/usr/lib/smlnj"
+LOADED=()
+
+load_module() {
+  module=$1
+  if [ -f "$module" ]; then
+    source "$module"
+
+    # Check that all dependencies have been satisfied
+    for dep in $MODULE_DEPS; do
+      if [[ ${LOADED[(i)$dep]} -le ${#LOADED} ]]; then
+        echo "Error: Module $module requires $dep but $dep is not loaded! Skipping."
+        return
+      fi
+    done
+
+    # Actually perform module functions
+    # TODO: actually figure out a sane system to have module-level parameters
+    module_exec
+
+    # Make sure module loading actually worked
+    if [ "$?" != "0" ]; then
+      echo "Unable to load module $module. Skipping."
+      return
+    fi
+
+    # Tell the system that we've loaded it
+    LOADED+=MODULE_NAME
+    echo "LOADED MODULE $MODULE_NAME"
+
+    # Unset all of the variables set for this system
+    unset MODULE_NAME
+    unset MODULE_DEPS
+    unset -f module_exec
+  else
+    echo "Unable to find module $module. Oops? Skipping."
+  fi
+}
+
+# Check whether to use OH-MY-ZSH config
+# We do this *first*, before the next step (host-specific scripts) because
+# oh-my-zsh could possibly overwrite aliases we want to preserve. It's in
+# keeping with the actual recommended usage of oh-my-zsh.
+if [[ -n $OHMYZSH ]]; then
+  load_module $SYSBASE_HOME/dotfiles/ohmyzsh
+fi
+
+# Run host-specific scripts
+SYSTEM_SCRIPTS=$SYSBASE_HOME/dotfiles/hosts/$SYSNAME
+if ! [[ -d $SYSTEM_SCRIPTS ]]; then
+  echo "No hosts folder present for this system. Creating empty folder and sourcing default."
+  mkdir $SYSTEM_SCRIPTS
+  SYSTEM_SCRIPTS=$SYSBASE_HOME/hosts/default
+fi
+chmod +x $SYSTEM_SCRIPTS/main.sh
+$SYSTEM_SCRIPTS/main.sh
 
