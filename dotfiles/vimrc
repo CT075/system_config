@@ -28,8 +28,20 @@ Plugin 'scrooloose/nerdtree'
 " Syntastic
 Plugin 'vim-syntastic/syntastic'
 
+" Whitespace
+Plugin 'ntpeters/vim-better-whitespace'
+
 " SML stuff???
 Plugin 'jez/vim-better-sml'
+
+" Surround
+Plugin 'tpope/vim-surround'
+
+" I enjoy looking good
+Plugin 'tomtom/quickfixsigns_vim'
+Plugin 'vim-airline/vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
+Plugin 'bling/vim-bufferline'
 
 call vundle#end()
 
@@ -48,6 +60,8 @@ set tabstop=2
 set shiftwidth=2
 set expandtab
 
+hi clear SignColumn
+
 " Indent as intelligently as vim knows how
 set smartindent
 
@@ -56,10 +70,6 @@ set showcmd
 
 " Show 80 character limit line
 set colorcolumn=80
-
-" Set the command window height to 2 lines, to avoid many cases of having to
-" press <Enter> to continue
-set cmdheight=2
 
 " Quickly time out on keycodes, but never time out on mappings
 set notimeout ttimeout ttimeoutlen=200
@@ -73,7 +83,7 @@ map <C-O> :NERDTree<CR>
 nnoremap gV `[v`]
 
 " ARM assembly syntax
-let asmsyntax='armasm' 
+let asmsyntax='armasm'
 let filetype_inc='armasm'
 
 " Change leader key
@@ -102,12 +112,25 @@ nnoremap <leader>s :mksession<CR>
 nnoremap <Tab> >>
 nnoremap <S-Tab> <<
 
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+let g:syntastic_error_symbol = '✘'
+let g:syntastic_warning_symbol = "▲"
+
 augroup mySyntastic
   " Errors should go into location-list
   au FileType sml let g:syntastic_always_populate_loc_list = 1
 
   " automatically open/close location-list
   au Filetype sml let g:syntastic_auto_loc_list = 1
+
+  au FileType tex let b:syntastic_mode = "passive"
 augroup END
 
 " Toggle syntax checking
@@ -120,4 +143,14 @@ if has("gui_running")
   set nobackup
   set nowritebackup
 endif
+
+" Enable statusbar
+set laststatus=2
+
+let g:airline_powerline_fonts=1
+set mouse=a
+
+let g:airline_theme='simple'
+let g:bufferline_echo=0
+set noshowmode
 
