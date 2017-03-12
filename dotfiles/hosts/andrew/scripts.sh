@@ -23,4 +23,5 @@ get_cs_afs_access() {
   echo "Be sure to add aklog cs.cmu.edu & to your ~/.bashrc"
 }
 }
+export module_exec
 
