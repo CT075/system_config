@@ -14,7 +14,7 @@ source ~/.host
 # This is needed by some of the other setup modules.
 export SYSBASE_HOME="$HOME/sys_base"
 
-LOADED=()
+MODULES=()
 
 load_module() {
   module=$1
@@ -23,7 +23,7 @@ load_module() {
 
     # Check that all dependencies have been satisfied
     for dep in $MODULE_DEPS; do
-      if [[ ${LOADED[(i)$dep]} -le ${#LOADED} ]]; then
+      if [[ ${MODULES[(i)$dep]} -le ${#MODULES} ]]; then
         echo "Error: Module $module requires $dep but $dep is not loaded! Skipping."
         return
       fi
@@ -40,8 +40,7 @@ load_module() {
     fi
 
     # Tell the system that we've loaded it
-    LOADED+=MODULE_NAME
-    echo "LOADED MODULE $MODULE_NAME"
+    MODULES+=$MODULE_NAME
 
     # Unset all of the variables set for this system
     unset MODULE_NAME
@@ -68,5 +67,8 @@ if ! [[ -d $SYSTEM_SCRIPTS ]]; then
   SYSTEM_SCRIPTS=$SYSBASE_HOME/hosts/default
 fi
 chmod +x $SYSTEM_SCRIPTS/main.sh
-$SYSTEM_SCRIPTS/main.sh
+. $SYSTEM_SCRIPTS/main.sh
+for module in $HOST_FILES; do
+  load_module $SYSTEM_SCRIPTS/$module
+done
 
