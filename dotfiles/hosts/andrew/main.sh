@@ -8,6 +8,7 @@ export HOST_FILES
 # for various CMU classes, etc
 export PATH=$PATH:/afs/andrew/course/15/122/bin
 export PATH=$PATH:/usr/lib/smlnj/bin
+export PATH=$PATH:/afs/andrew/course/15/150/bin
 
 # prompt/etc
 PROMPT='%D{[%H:%M:%S]}%F{yellow}%n%F{default}@%F{green}%m%f%F{default}:%(4~|%-1~/.../%2~|%3~)$ '
