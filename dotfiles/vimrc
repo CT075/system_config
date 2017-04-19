@@ -79,6 +79,7 @@ map <C-Up> :bnext<CR>
 map <C-Down> :bprevious<CR>
 
 map <C-O> :NERDTree<CR>
+let NERDTreeQuitOnOpen=1
 
 nnoremap gV `[v`]
 

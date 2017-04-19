@@ -8,6 +8,8 @@
 #
 # Draws very heavy inspiration from Jake Zimmerman's dotfiles repository.
 
+export TERM="xterm-256color"
+
 # Load configurations for this host
 source ~/.host
 
