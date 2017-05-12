@@ -6,10 +6,6 @@ _pull_update() {
 }
 
 _push_update() {
-  git add -A
-  echo "Commit message:"
-  read msg
-  git commit -m "$msg"
   git push
 }
 
@@ -25,9 +21,8 @@ fi
 pushd &> /dev/null
 cd $SYSBASE_HOME
 
-git diff --exit-code &> /dev/null
-if [ $? -ne 0 ]; then
-  echo "Local changes to sys_base detected. Commit to remote?"
+if [ -n $(git log --branches --not --remotes) ]; then
+  echo "Local changes to sys_base detected. Push to remote?"
   read line
   if [[ "$line" == Y* ]] || [[ "$line" == y* ]] || [ -z "$line" ]; then
     _push_update
