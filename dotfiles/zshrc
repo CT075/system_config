@@ -53,6 +53,9 @@ load_module() {
   fi
 }
 
+# try to update!
+. $SYSBASE_HOME/scripts/update
+
 # Check whether to use OH-MY-ZSH config
 # We do this *first*, before the next step (host-specific scripts) because
 # oh-my-zsh could possibly overwrite aliases we want to preserve. It's in

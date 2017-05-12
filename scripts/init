@@ -33,6 +33,7 @@ echo "done"
 for file in $(ls dotfiles); do
   echo "Moving existing dotfiles from ~ to $olddir"
   mv ~/.$file $olddir
+  # We should probably do this properly
   echo "Symlinking $file from dotfiles to home directory."
   ln -s $(pwd)/dotfiles/$file ~/.$file
 done

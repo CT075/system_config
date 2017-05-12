@@ -1,13 +1,46 @@
 #!/bin/bash
 
-set -x
+_pull_update() {
+  git pull
+  echo $current_epoch > $HOME/.last_updated
+}
 
-cd ~/sys_base
-git pull
-cd ~/sys_base/dotfiles
-git add -A
-echo "Commit message:"
-read -e msg
-git commit -m "$msg"
-git push
+_push_update() {
+  git add -A
+  echo "Commit message:"
+  read msg
+  git commit -m "$msg"
+  git push
+}
+
+current_epoch=$(date +%s)
+
+if [ -e $HOME/.last_updated ]; then
+  last_epoch=$(<$HOME/.last_updated)
+else
+  touch $HOME/.last_updated
+  last_epoch=$current_epoch
+fi
+
+pushd
+cd $SYSBASE_HOME
+
+git diff --exit-code &> /dev/null
+if [ $? -ne 0 ]; then
+  echo "Local changes to sys_base detected. Commit to remote?"
+  read line
+  if [[ "$line" == Y* ]] || [[ "$line" == y* ]] || [ -z "$line" ]; then
+    _push_update
+  else
+    [ $PS1 ] && return || exit;
+  fi
+fi
+
+# check for updates at most once per week
+epoch_diff=$(($current_epoch - $last_epoch))
+if [ $epoch_diff -gt 7 ]; then
+  _pull_update
+fi
+
+popd
 
