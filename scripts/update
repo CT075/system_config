@@ -18,8 +18,8 @@ current_epoch=$(date +%s)
 if [ -e $HOME/.last_updated ]; then
   last_epoch=$(<$HOME/.last_updated)
 else
-  touch $HOME/.last_updated
   last_epoch=$current_epoch
+  echo $current_epoch > $HOME/.last_updated
 fi
 
 pushd &> /dev/null
