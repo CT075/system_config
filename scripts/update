@@ -21,7 +21,7 @@ fi
 pushd &> /dev/null
 cd $SYSBASE_HOME
 
-if [ -n $(git log --branches --not --remotes) ]; then
+if [ -n "$(git log --branches --not --remotes)" ]; then
   echo "Local changes to sys_base detected. Push to remote?"
   read line
   if [[ "$line" == Y* ]] || [[ "$line" == y* ]] || [ -z "$line" ]; then
