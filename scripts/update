@@ -22,7 +22,7 @@ else
   last_epoch=$current_epoch
 fi
 
-pushd
+pushd &> /dev/null
 cd $SYSBASE_HOME
 
 git diff --exit-code &> /dev/null
@@ -32,6 +32,7 @@ if [ $? -ne 0 ]; then
   if [[ "$line" == Y* ]] || [[ "$line" == y* ]] || [ -z "$line" ]; then
     _push_update
   else
+    popd &> /dev/null
     [ $PS1 ] && return || exit;
   fi
 fi
@@ -42,5 +43,5 @@ if [ $epoch_diff -gt 7 ]; then
   _pull_update
 fi
 
-popd
+popd &> /dev/null
 
