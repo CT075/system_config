@@ -33,7 +33,7 @@ if [ -n "$(git log --branches --not --remotes)" ]; then
 fi
 
 # check for updates at most once per week
-epoch_diff=$(( ($current_epoch-$last_epoch) / 60 / 60 ))
+epoch_diff=$(( ($current_epoch-$last_epoch) / 60 / 60 / 24 ))
 if [ $epoch_diff -gt 7 ]; then
   _pull_update
 fi
