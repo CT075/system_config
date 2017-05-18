@@ -38,10 +38,12 @@ Plugin 'jez/vim-better-sml'
 Plugin 'tpope/vim-surround'
 
 " I enjoy looking good
-Plugin 'tomtom/quickfixsigns_vim'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 Plugin 'bling/vim-bufferline'
+
+" git gutter
+Plugin 'airblade/vim-gitgutter'
 
 call vundle#end()
 
@@ -50,7 +52,7 @@ call vundle#end()
 set ruler
 set number
 
-"Enable filetype detection and syntax hilighting
+" Enable filetype detection and syntax highlighting
 syntax on
 filetype on
 filetype indent on
