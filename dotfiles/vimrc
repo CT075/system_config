@@ -130,6 +130,8 @@ augroup mySyntastic
 
   " automatically open/close location-list
   au Filetype sml let g:syntastic_auto_loc_list = 1
+  au Filetype sml let g:syntastic_sml_no_polyeq = 1
+  au Filetype sml let g:syntastic_sml_smlnj_args = "-Ccontrol.poly-eq-warn=false"
 
   au FileType tex let b:syntastic_mode = "passive"
 augroup END
@@ -144,6 +146,10 @@ if has("gui_running")
   set nobackup
   set nowritebackup
 endif
+
+" Open NERDTree when vim is opened bare
+autocmd StdinReadPre * let s:std_in=1
+autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 
 " Enable statusbar
 set laststatus=2
