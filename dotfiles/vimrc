@@ -37,6 +37,9 @@ Plugin 'jez/vim-better-sml'
 " Surround
 Plugin 'tpope/vim-surround'
 
+" Let's repeat things!
+Plugin 'tpope/vim-repeat'
+
 " I enjoy looking good
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
