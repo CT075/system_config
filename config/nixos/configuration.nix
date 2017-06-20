@@ -56,12 +56,10 @@
     zip unzip
     alsaLib alsaPlugins alsaUtils
     git curl
-    python python3
+    python
     binutils nix
+    dmenu
     chromium
-    dmenu trayer
-    haskellPackages.xmobar
-    xscreensaver
   ];
 
   programs.zsh.enable = true;
@@ -84,13 +82,13 @@
     };
     desktopManager = {
       gnome3.enable = true;
+      default = "gnome3";
     };
     windowManager = {
       xmonad = {
         enable = true;
-	      enableContribAndExtras = true;
+	enableContribAndExtras = true;
       };
-      default = "xmonad";
     };
   };
 
