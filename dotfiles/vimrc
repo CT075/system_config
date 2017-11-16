@@ -117,6 +117,9 @@ nnoremap <leader>w :w<CR>
 " Save session
 nnoremap <leader>s :mksession<CR>
 
+" Git commit/push
+nnoremap <leader>r :! git commit -am "kek" && git push<CR>
+
 " Tab things
 nnoremap <Tab> >>
 nnoremap <S-Tab> <<
@@ -142,8 +145,13 @@ augroup mySyntastic
   au FileType tex let b:syntastic_mode = "passive"
 augroup END
 
+" Make the syntastic errors readable
+hi Search ctermfg=88
+
 " Toggle syntax checking
 nnoremap <Leader>t :SyntasticToggleMode<CR>
+
+" highlight QuickFixLine guibg='Purple' ctermbg=52
 
 " Let's not leave swap files cluttering everything while just perusing with
 " gvim, shall we?
@@ -154,8 +162,8 @@ if has("gui_running")
 endif
 
 " Open NERDTree when vim is opened bare
-autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+"autocmd StdinReadPre * let s:std_in=1
+"autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 
 " Enable statusbar
 set laststatus=2
