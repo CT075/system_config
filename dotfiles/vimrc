@@ -82,10 +82,6 @@ set colorcolumn=80
 " Quickly time out on keycodes, but never time out on mappings
 set notimeout ttimeout ttimeoutlen=200
 
-" Map ctrl-arrow to shifting buffers
-map <C-Up> :bnext<CR>
-map <C-Down> :bprevious<CR>
-
 map <C-O> :NERDTree<CR>
 let NERDTreeQuitOnOpen=1
 
@@ -97,6 +93,10 @@ let filetype_inc='armasm'
 
 " Change leader key
 let mapleader=","
+
+" Map ctrl-arrow to shifting buffers
+map <C-Up> :bnext<CR>
+map <C-Down> :bprevious<CR>
 
 " gundo tree
 nnoremap <F2> :GundoToggle<CR>
