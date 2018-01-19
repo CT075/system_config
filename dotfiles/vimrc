@@ -36,6 +36,7 @@ Plugin 'jez/vim-better-sml'
 " This is not the 'official' rust.vim plugin because it doesn't support cargo
 " (yet)
 Plugin 'mckinnsb/rust.vim'
+Plugin 'neovimhaskell/haskell-vim'
 
 " Surround
 Plugin 'tpope/vim-surround'
