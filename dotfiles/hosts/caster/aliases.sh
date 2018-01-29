@@ -5,6 +5,7 @@ module_exec() {
   alias pacman="sudo pacman"
   alias sml="rlwrap sml"
   alias smlnj="sml"
+  alias ocaml="rlwrap ocaml"
   alias ll="ls -l"
   alias la="ls -a"
   alias rebootwifi="sudo systemctl restart wpa_supplicant; sudo systemctl restart NetworkManager"

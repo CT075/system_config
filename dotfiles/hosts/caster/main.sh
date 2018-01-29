@@ -7,3 +7,5 @@
 export HOST_FILES=( aliases.sh )
 export SMLNJ_HOME="/usr/lib/smlnj"
 
+eval `opam config env`
+
