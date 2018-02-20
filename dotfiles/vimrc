@@ -23,10 +23,13 @@ Plugin 'cmugpi/vim-c0'
 Plugin 'sjl/gundo.vim'
 
 " NERD tree
-Plugin 'scrooloose/nerdtree'
+"Plugin 'scrooloose/nerdtree'
 
 " Syntastic
-Plugin 'vim-syntastic/syntastic'
+"Plugin 'vim-syntastic/syntastic'
+
+" Async syntax checking!
+Plugin 'w0rp/ale'
 
 " Whitespace
 Plugin 'ntpeters/vim-better-whitespace'
@@ -43,6 +46,10 @@ Plugin 'tpope/vim-surround'
 
 " Let's repeat things!
 Plugin 'tpope/vim-repeat'
+
+Plugin 'scrooloose/nerdcommenter'
+
+Plugin 'francoiscabrol/ranger.vim'
 
 " I enjoy looking good
 Plugin 'vim-airline/vim-airline'
@@ -86,12 +93,13 @@ set colorcolumn=80
 set notimeout ttimeout ttimeoutlen=10
 
 " buffer stuff
-map <C-Up> :bnext<CR>
-map <C-Down> :bprevious<CR>
+map <C-Right> :bnext<CR>
+map <C-Left> :bprevious<CR>
 map <C-W> :bd<CR>
 
-map <C-O> :NERDTree<CR>
-let NERDTreeQuitOnOpen=1
+"map <C-O> :NERDTree<CR>
+"let NERDTreeQuitOnOpen=1
+map <C-O> :RangerCurrentDirectory<CR>
 
 nnoremap gV `[v`]
 
@@ -107,8 +115,8 @@ nnoremap <F2> :GundoToggle<CR>
 
 " make and associated convenience
 nnoremap <leader>m :make<CR>
-nnoremap <C-Right> :cn<CR>
-nnoremap <C-Left> :cp<CR>
+nnoremap <C-Up> :cn<CR>
+nnoremap <C-Down> :cp<CR>
 
 " Search as characters are entered
 set incsearch
@@ -128,33 +136,33 @@ nnoremap <leader>r :! git commit -am "kek" && git push<CR>
 nnoremap <Tab> >>
 nnoremap <S-Tab> <<
 
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
+"set statusline+=%#warningmsg#
+"set statusline+=%{SyntasticStatuslineFlag()}
+"set statusline+=%*
 
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
+"let g:syntastic_always_populate_loc_list = 1
+"let g:syntastic_auto_loc_list = 1
+"let g:syntastic_check_on_open = 1
+"let g:syntastic_check_on_wq = 0
 
-augroup mySyntastic
-  " Errors should go into location-list
-  au FileType sml let g:syntastic_always_populate_loc_list = 1
+"augroup mySyntastic
+  "" Errors should go into location-list
+  "au FileType sml let g:syntastic_always_populate_loc_list = 1
 
-  " automatically open/close location-list
-  au Filetype sml let g:syntastic_auto_loc_list = 1
-  au Filetype sml let g:syntastic_sml_no_polyeq = 1
-  au Filetype sml let g:syntastic_sml_smlnj_args = "-Ccontrol.poly-eq-warn=false"
+  "" automatically open/close location-list
+  "au Filetype sml let g:syntastic_auto_loc_list = 1
+  "au Filetype sml let g:syntastic_sml_no_polyeq = 1
+  "au Filetype sml let g:syntastic_sml_smlnj_args = "-Ccontrol.poly-eq-warn=false"
 
-  au FileType tex let b:syntastic_mode = "passive"
-  au FileType java let b:syntastic_mode = "passive"
-augroup END
+  "au FileType tex let b:syntastic_mode = "passive"
+  "au FileType java let b:syntastic_mode = "passive"
+"augroup END
 
 " Make the syntastic errors readable
-hi Search ctermfg=88
+"hi Search ctermfg=88
 
 " Toggle syntax checking
-nnoremap <Leader>t :SyntasticToggleMode<CR>
+"nnoremap <Leader>t :SyntasticToggleMode<CR>
 
 " highlight QuickFixLine guibg='Purple' ctermbg=52
 
@@ -177,6 +185,18 @@ set mouse=a
 
 let g:airline_theme='simple'
 let g:bufferline_echo=0
+
+let g:ale_sign_error = '>>'
+let g:ale_sign_warning = '!!'
+let g:ale_set_highlights = 0
+
+let g:airline#extensions#ale#enabled = 1
+let g:ale_linters = {
+      \  'tex' : [],
+      \}
+
+nmap <silent> <C-k> <Plug>(ale_previous_wrap)
+nmap <silent> <C-j> <Plug>(ale_next_wrap)
 
 " ## added by OPAM user-setup for vim / base ## 93ee63e278bdfc07d1139a748ed3fff2 ## you can edit, but keep this line
 let s:opam_share_dir = system("opam config var share")
