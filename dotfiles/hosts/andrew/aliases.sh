@@ -17,6 +17,8 @@ module_exec() {
 
   alias cc='gcc -Wall -W -ansi -pedantic -O2 '
   alias valgrind-leak='valgrind --leak-check=full --show-reachable=yes'
+
+  alias vim=~/bin/nvim.appimage
 }
 export module_exec
 
