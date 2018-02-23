@@ -19,6 +19,7 @@ module_exec() {
   alias valgrind-leak='valgrind --leak-check=full --show-reachable=yes'
 
   alias vim=~/bin/nvim.appimage
+  alias ranger=~/bin/ranger
 }
 export module_exec
 
