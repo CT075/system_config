@@ -49,6 +49,9 @@ Plugin 'tpope/vim-repeat'
 
 Plugin 'scrooloose/nerdcommenter'
 
+if has("nvim")
+  Plugin 'rbgrouleff/bclose.vim'
+endif
 Plugin 'francoiscabrol/ranger.vim'
 
 " I enjoy looking good
