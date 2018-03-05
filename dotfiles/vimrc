@@ -9,6 +9,10 @@ set nocompatible
 set backspace=indent,eol,start
 filetype off " required for Vundle plugin manager
 
+if has("nvim")
+  set guicursor=
+endif
+
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
@@ -196,6 +200,7 @@ let g:ale_set_highlights = 0
 let g:airline#extensions#ale#enabled = 1
 let g:ale_linters = {
       \  'tex' : [],
+      \  'bash' : [],
       \}
 
 nmap <silent> <C-k> <Plug>(ale_previous_wrap)
@@ -235,4 +240,8 @@ endfor
 " ## end of OPAM user-setup addition for vim / base ## keep this line
 
 set noshowmode
+
+if has("nvim")
+  tnoremap <Esc> <C-\><C-n>
+endif
 
