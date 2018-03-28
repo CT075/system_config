@@ -1,0 +1,3 @@
+pane	0	0	:vim	1	:*	0	:/home/cam/Documents/Programming/15418/exercises/ex1	1	vim	:vim ex1-answer.tex
+window	0	0	1	:*	c2fd,105x55,0,0,0
+state	0	

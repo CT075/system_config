@@ -1,0 +1,3 @@
+pane	0	0	:zsh	1	:*	0	:/home/cam	1	zsh	:
+window	0	0	1	:*	c15d,211x55,0,0,0
+state	0	

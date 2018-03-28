@@ -1,0 +1,5 @@
+pane	10	0	:zsh	1	:*	0	:/home/cam	1	zsh	:
+pane	7	0	:vim	1	:*	0	:/home/cam/Documents/Programming/15312/assn4/written	1	vim	:vim hw04.tex
+window	10	0	1	:*	60e4,211x55,0,0,15
+window	7	0	1	:*	c306,105x55,0,0,9
+state	10	

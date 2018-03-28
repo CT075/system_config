@@ -1,0 +1,10 @@
+pane	0	0	:vim	1	:*	0	:/home/cam/Documents/Programming/15418/exercises/ex1	1	vim	:vim ex1-answer.tex
+pane	0	0	:vim	1	:*	0	:/home/cam/Documents/Programming/15418/exercises/ex1	1	vim	:vim ex1-answer.tex
+pane	7	0	:vim	1	:*	0	:/home/cam/Documents/Programming/15312/assn4/dyn	1	vim	:vim tests/listops_tests.dyn
+pane	7	0	:vim	1	:*	0	:/home/cam/Documents/Programming/15312/assn4/dyn	1	vim	:vim tests/listops_tests.dyn
+window	0	0	1	:*	c2fd,105x55,0,0,0
+window	7	0	1	:*	c306,105x55,0,0,9
+window	0	0	1	:*	c2fd,105x55,0,0,0
+window	7	0	1	:*	c306,105x55,0,0,9
+state	7	
+state	7	

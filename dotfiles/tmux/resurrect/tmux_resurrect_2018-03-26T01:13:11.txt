@@ -1,0 +1,10 @@
+pane	15	0	:vim	1	:*	0	:/home/cam/Documents/Programming/213/tshlab-handout	1	vim	:vim tsh.c
+pane	15	0	:vim	1	:*	0	:/home/cam/Documents/Programming/213/tshlab-handout	1	vim	:vim tsh.c
+pane	7	0	:vim	1	:*	0	:/home/cam/Documents/Programming/15312/assn4/written	1	vim	:vim hw04.tex
+pane	7	0	:vim	1	:*	0	:/home/cam/Documents/Programming/15312/assn4/written	1	vim	:vim hw04.tex
+window	15	0	1	:*	e0e0,211x55,0,0,21
+window	7	0	1	:*	c306,105x55,0,0,9
+window	15	0	1	:*	e0e0,211x55,0,0,21
+window	7	0	1	:*	c306,105x55,0,0,9
+state	15	
+state	15	

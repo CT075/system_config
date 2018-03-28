@@ -1,0 +1,3 @@
+pane	7	0	:vim	1	:*	0	:/home/cam/Documents/Programming/15312/assn4/written	1	vim	:vim hw04.tex
+window	7	0	1	:*	c306,105x55,0,0,9
+state	7	

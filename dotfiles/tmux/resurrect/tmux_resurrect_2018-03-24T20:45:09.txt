@@ -1,0 +1,5 @@
+pane	13	0	:vim	1	:*	0	:/home/cam/Documents/TA/15150/asgn/hw/08	1	vim	:vim typeclasses/monads.tex
+pane	7	0	:vim	1	:*	0	:/home/cam/Documents/Programming/15312/assn4/written	1	vim	:vim hw04.tex
+window	13	0	1	:*	60e7,211x55,0,0,18
+window	7	0	1	:*	c306,105x55,0,0,9
+state	13	
