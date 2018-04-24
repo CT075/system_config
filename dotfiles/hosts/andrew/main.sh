@@ -26,3 +26,5 @@ RPROMPT='%F{red}$curDir'
 # Allow us to use github properly
 unset SSH_ASKPASS
 
+aklog cs
+
