@@ -1,4 +1,4 @@
-export MODULE_NAME="lancer_aliases"
+export MODULE_NAME="rider_aliases"
 export MODULE_DEPS=()
 
 module_exec() {
@@ -12,5 +12,7 @@ module_exec() {
   alias arm-gcc="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc"
   alias arm-gcc2="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc-5.3.0"
   alias arm-as="/opt/devkitpro/devkitARM/bin/arm-none-eabi-as"
+  alias ghci="stack ghci"
+  alias runhaskell="stack runhaskell"
 }
 
