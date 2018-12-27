@@ -63,6 +63,9 @@ load_module() {
 if [[ -n $OHMYZSH ]]; then
   load_module $SYSBASE_HOME/dotfiles/ohmyzsh
 fi
+if [[ -n $PREZTO ]]; then
+  load_module $SYSBASE_HOME/dotfiles/prezto
+fi
 
 # Run host-specific scripts
 SYSTEM_SCRIPTS=$SYSBASE_HOME/dotfiles/hosts/$SYSNAME

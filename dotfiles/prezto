@@ -1,0 +1,41 @@
+#
+# Executes commands at the start of an interactive session.
+#
+# Authors:
+#   Sorin Ionescu <sorin.ionescu@gmail.com>
+#
+
+export MODULE_NAME="PREZTO"
+export MODULE_DEPS=()
+
+module_exec() {
+
+# Source Prezto.
+if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+fi
+
+function git_root_prompt() {
+  local color='%F{black}'
+  local dir=$(git rev-parse --show-toplevel 2>/dev/null)
+  local result='~'
+
+  if [[ ! -z "$dir" ]] then
+    local root=$(basename $dir)
+    local branch=$(git branch | grep \* | cut -d ' ' -f2)
+    result="$root:$branch"
+  fi
+  echo -n "%{$color%} $result%{%f%}"
+}
+
+POWERLEVEL9K_VIRTUALENV_BACKGROUND='161'
+POWERLEVEL9K_VIRTUALENV_FOREGROUND='007'
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir virtualenv)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(vcs time)
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=1
+POWERLEVEL9K_SHORTEN_DELIMITER=""
+POWERLEVEL9K_SHORTEN_STRATEGY="truncate_from_right"
+
+}
+
+# Customize to your needs...

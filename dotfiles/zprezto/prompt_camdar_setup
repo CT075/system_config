@@ -1,0 +1,10 @@
+
+pmodload 'helper'
+
+function prompt_camdar_precmd {
+  git-info
+}
+
+function prompt_camdar_setup {
+}
+
