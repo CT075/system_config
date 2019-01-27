@@ -13,3 +13,17 @@ export VISUAL=vim
 
 eval `opam config env`
 
+export SRC=/home/cam/Documents/src
+
+function inittex () {
+  name=$1
+  if [ -z $name ]
+  then
+    echo "missing file name"
+  fi
+  cp -r $SRC/texformat $name
+  sed -i s/\{fname\}/$name/g $name/Makefile
+  sed -i s@\{texpath\}@"$SRC/latex"@g $name/Makefile
+  mv $name/template.tex $name/$name.tex
+}
+
