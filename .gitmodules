@@ -1,0 +1,3 @@
+[submodule "scripts/bask"]
+	path = scripts/bask
+	url = https://github.com/jez/bask

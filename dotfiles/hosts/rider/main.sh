@@ -7,7 +7,7 @@
 export HOST_FILES=( aliases.sh )
 export SMLNJ_HOME="/usr/lib/smlnj"
 export DEVKITARM="/opt/devkitpro/devkitARM"
-export PATH=$PATH:/home/cam/.local/bin/
+export PATH=$PATH:/home/cam/.local/bin/:/home/cam/sys_base/scripts/bask/bin
 export EDITOR=vim
 export VISUAL=vim
 
