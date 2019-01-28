@@ -22,7 +22,7 @@ function inittex () {
     echo "missing file name"
   fi
   cp -r $SRC/texformat $name
-  sed -i s/\{fname\}/$name/g $name/Makefile
+  sed -i s/\{fname\}/$name.tex/g $name/Makefile
   sed -i s@\{texpath\}@"$SRC/latex"@g $name/Makefile
   mv $name/template.tex $name/$name.tex
 }
