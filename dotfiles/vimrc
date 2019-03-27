@@ -43,7 +43,9 @@ Plugin 'jez/vim-better-sml'
 " This is not the 'official' rust.vim plugin because it doesn't support cargo
 " (yet)
 Plugin 'mckinnsb/rust.vim'
+
 Plugin 'neovimhaskell/haskell-vim'
+Plugin 'itchyny/vim-haskell-indent'
 
 " Surround
 Plugin 'tpope/vim-surround'
@@ -142,6 +144,8 @@ nnoremap <leader>r :! git commit -am "kek" && git push<CR>
 " Tab things
 nnoremap <Tab> >>
 nnoremap <S-Tab> <<
+
+let g:haskell_indent_disable=1
 
 "set statusline+=%#warningmsg#
 "set statusline+=%{SyntasticStatuslineFlag()}
@@ -243,6 +247,10 @@ endfor
 " ## end of OPAM user-setup addition for vim / base ## keep this line
 
 set noshowmode
+
+let g:opamshare = substitute(system('opam config var share'),'\n$','','''')
+execute "set rtp+=" . g:opamshare . "/merlin/vim"
+au Filetype ocaml nnoremap <Leader>t :MerlinTypeOf<CR>
 
 if has("nvim")
   tnoremap <Esc> <C-\><C-n>
