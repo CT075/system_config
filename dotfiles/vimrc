@@ -1,30 +1,32 @@
 " Allow multiple buffers in the same window
 set hidden
-
 " Better command-line completion
 set wildmenu
 
 " Ensure that we are in modern vim mode, not backwards-compatible vi mode
 set nocompatible
 set backspace=indent,eol,start
-filetype off " required for Vundle plugin manager
-
 if has("nvim")
-  set guicursor=
+  set guicursor=i:ver25-iCursor
 endif
 
+set clipboard=unnamedplus
+
+if has("nvim")
+  let g:python3_host_prog = '/home/cam/neovim3/bin/python'
+endif
+
+set hidden
+
+filetype off " required for Vundle plugin manager
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
-" let Vundle manage Vundle, required
-Plugin 'gmarik/Vundle.vim'
-
-" vim-c0 plugin on Github repo
+" let Vundle manage Vundle, required Plugin 'gmarik/Vundle.vim' vim-c0 plugin on Github repo
 Plugin 'cmugpi/vim-c0'
 
-" install gundo
-Plugin 'sjl/gundo.vim'
+Plugin 'mbbill/undotree'
 
 " NERD tree
 "Plugin 'scrooloose/nerdtree'
@@ -42,10 +44,13 @@ Plugin 'ntpeters/vim-better-whitespace'
 Plugin 'jez/vim-better-sml'
 " This is not the 'official' rust.vim plugin because it doesn't support cargo
 " (yet)
-Plugin 'mckinnsb/rust.vim'
+"Plugin 'mckinnsb/rust.vim'
 
 Plugin 'neovimhaskell/haskell-vim'
 Plugin 'itchyny/vim-haskell-indent'
+
+Plugin 'godlygeek/tabular'
+Plugin 'plasticboy/vim-markdown'
 
 " Surround
 Plugin 'tpope/vim-surround'
@@ -63,30 +68,50 @@ Plugin 'francoiscabrol/ranger.vim'
 " I enjoy looking good
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-Plugin 'bling/vim-bufferline'
+"Plugin 'bling/vim-bufferline'
+
+Plugin 'tpope/vim-fugitive'
 
 " git gutter
 Plugin 'airblade/vim-gitgutter'
-
-Plugin 'csressel/nyan-mode-vim'
 
 Plugin 'christophermca/meta5'
 Plugin 'flazz/vim-colorschemes'
 
 Plugin 'tpope/vim-obsession'
 
-call vundle#end()
+Plugin 'CharlesGueunet/VimFilify'
 
-" Helpful information: cursor position in bottom right, line numbers on
-" left
-set ruler
-set number
+if has("nvim")
+  Plugin 'sbdchd/neoformat'
+else
+  Plugin 'Chiel92/vim-autoformat'
+endif
+
+Plugin 'psf/black'
+
+Plugin 'junegunn/fzf.vim'
+
+Plugin 'ocaml/vim-ocaml'
+
+Plugin 'autozimu/Languageclient-neovim'
+
+Plugin 'Shougo/deoplete.nvim'
+
+call vundle#end()
 
 " Enable filetype detection and syntax highlighting
 syntax on
 filetype on
 filetype indent on
 filetype plugin on
+
+let g:airline#extensions#tabline#enabled = 1
+
+" Helpful information: cursor position in bottom right, line numbers on
+" left
+set ruler
+set number
 
 set tabstop=2
 set shiftwidth=2
@@ -113,14 +138,21 @@ set colorcolumn=80
 " Quickly time out on keycodes, but never time out on mappings
 set notimeout ttimeout ttimeoutlen=10
 
+let g:bufferline_rotate=1
+
 " buffer stuff
 map <C-Right> :bnext<CR>
 map <C-Left> :bprevious<CR>
+map <C-k> :bnext<CR>
+map <C-j> :bprevious<CR>
 map <C-W> :bd<CR>
+
+map <C-P> :Files<CR>
 
 "map <C-O> :NERDTree<CR>
 "let NERDTreeQuitOnOpen=1
 map <C-O> :RangerCurrentDirectory<CR>
+nmap <Space> :
 
 nnoremap gV `[v`]
 
@@ -157,56 +189,23 @@ nnoremap <leader>r :! git commit -am "kek" && git push<CR>
 nnoremap <Tab> >>
 nnoremap <S-Tab> <<
 
+nnoremap <F2> :UndotreeToggle<cr>
+
 let g:haskell_indent_disable=1
 
-"set statusline+=%#warningmsg#
-"set statusline+=%{SyntasticStatuslineFlag()}
-"set statusline+=%*
-
-"let g:syntastic_always_populate_loc_list = 1
-"let g:syntastic_auto_loc_list = 1
-"let g:syntastic_check_on_open = 1
-"let g:syntastic_check_on_wq = 0
-
-"augroup mySyntastic
-  "" Errors should go into location-list
-  "au FileType sml let g:syntastic_always_populate_loc_list = 1
-
-  "" automatically open/close location-list
-  "au Filetype sml let g:syntastic_auto_loc_list = 1
-  "au Filetype sml let g:syntastic_sml_no_polyeq = 1
-  "au Filetype sml let g:syntastic_sml_smlnj_args = "-Ccontrol.poly-eq-warn=false"
-
-  "au FileType tex let b:syntastic_mode = "passive"
-  "au FileType java let b:syntastic_mode = "passive"
-"augroup END
-
-" Make the syntastic errors readable
-"hi Search ctermfg=88
-
-" Toggle syntax checking
-"nnoremap <Leader>t :SyntasticToggleMode<CR>
-
-" highlight QuickFixLine guibg='Purple' ctermbg=52
-
-" Let's not leave swap files cluttering everything while just perusing with
-" gvim, shall we?
+" don't clutter with swap files while using gvim
 if has("gui_running")
   set noswapfile
   set nobackup
   set nowritebackup
 endif
 
-" Open NERDTree when vim is opened bare
-"autocmd StdinReadPre * let s:std_in=1
-"autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
-
 " Enable statusbar
 set laststatus=2
 
 set mouse=a
 
-let g:airline_theme='simple'
+let g:airline_theme='luna'
 let g:bufferline_echo=0
 
 let g:ale_sign_error = '>>'
@@ -219,52 +218,120 @@ let g:ale_linters = {
       \  'latex' : [],
       \  'ocaml' : ['merlin'],
       \  'bash' : [],
-      \  'haskell' : ['stack-ghc']
+      \  'haskell' : ['stack-build'],
+      \  'python' : [ 'pylint' ]
       \}
 
-nmap <silent> <C-k> <Plug>(ale_previous_wrap)
-nmap <silent> <C-j> <Plug>(ale_next_wrap)
 
-" ## added by OPAM user-setup for vim / base ## 93ee63e278bdfc07d1139a748ed3fff2 ## you can edit, but keep this line
-let s:opam_share_dir = system("opam config var share")
-let s:opam_share_dir = substitute(s:opam_share_dir, '[\r\n]*$', '', '')
+if &filetype ==# 'ocaml'
+" aaaaaaaaaaaaaaa ftplugin isn't working so we have to do this every time
+" if neovim stalls on open it's because opam is being terrible
 
-let s:opam_configuration = {}
+  " ## added by OPAM user-setup for vim / base ## 93ee63e278bdfc07d1139a748ed3fff2 ## you can edit, but keep this line
+  let s:opam_share_dir = system("opam config var share")
+  let s:opam_share_dir = substitute(s:opam_share_dir, '[\r\n]*$', '', '')
 
-function! OpamConfOcpIndent()
-  execute "set rtp^=" . s:opam_share_dir . "/ocp-indent/vim"
-endfunction
-let s:opam_configuration['ocp-indent'] = function('OpamConfOcpIndent')
+  let s:opam_configuration = {}
 
-function! OpamConfOcpIndex()
-  execute "set rtp+=" . s:opam_share_dir . "/ocp-index/vim"
-endfunction
-let s:opam_configuration['ocp-index'] = function('OpamConfOcpIndex')
+  function! OpamConfOcpIndent()
+    execute "set rtp^=" . s:opam_share_dir . "/ocp-indent/vim"
+  endfunction
+  let s:opam_configuration['ocp-indent'] = function('OpamConfOcpIndent')
 
-function! OpamConfMerlin()
-  let l:dir = s:opam_share_dir . "/merlin/vim"
-  execute "set rtp+=" . l:dir
-endfunction
-let s:opam_configuration['merlin'] = function('OpamConfMerlin')
+  function! OpamConfOcpIndex()
+    execute "set rtp+=" . s:opam_share_dir . "/ocp-index/vim"
+  endfunction
+  let s:opam_configuration['ocp-index'] = function('OpamConfOcpIndex')
 
-let s:opam_packages = ["ocp-indent", "ocp-index", "merlin"]
-let s:opam_check_cmdline = ["opam list --installed --short --safe --color=never"] + s:opam_packages
-let s:opam_available_tools = split(system(join(s:opam_check_cmdline)))
-for tool in s:opam_packages
-  " Respect package order (merlin should be after ocp-index)
-  if count(s:opam_available_tools, tool) > 0
-    call s:opam_configuration[tool]()
-  endif
-endfor
-" ## end of OPAM user-setup addition for vim / base ## keep this line
+  function! OpamConfMerlin()
+    let l:dir = s:opam_share_dir . "/merlin/vim"
+    execute "set rtp+=" . l:dir
+  endfunction
+  let s:opam_configuration['merlin'] = function('OpamConfMerlin')
+
+  let s:opam_packages = ["ocp-indent", "ocp-index", "merlin"]
+  let s:opam_check_cmdline = ["opam list --installed --short --safe --color=never"] + s:opam_packages
+  let s:opam_available_tools = split(system(join(s:opam_check_cmdline)))
+  for tool in s:opam_packages
+    " Respect package order (merlin should be after ocp-index)
+    if count(s:opam_available_tools, tool) > 0
+      call s:opam_configuration[tool]()
+    endif
+  endfor
+  " ## end of OPAM user-setup addition for vim / base ## keep this line
+  let g:opamshare = substitute(system('opam config var share'),'\n$','','''')
+  execute "set rtp+=" . g:opamshare . "/merlin/vim"
+endif
+
+if &filetype ==# 'ocaml'
+  nnoremap <Leader>t :MerlinTypeOf<CR>
+endif
 
 set noshowmode
 
-let g:opamshare = substitute(system('opam config var share'),'\n$','','''')
-execute "set rtp+=" . g:opamshare . "/merlin/vim"
-au Filetype ocaml nnoremap <Leader>t :MerlinTypeOf<CR>
-
 if has("nvim")
-  tnoremap <Esc> <C-\><C-n>
+  tnoremap <C-\> <C-\><C-n>
 endif
+
+augroup vimmic_c_ale_config
+  autocmd FileType c let g:ale_c_gcc_executable = Filify#process('.ale_config', {'default_return':'gcc', 'recurse':'true'})
+  autocmd FileType h let g:ale_c_gcc_executable = Filify#process('.ale_config', {'default_return':'gcc', 'recurse':'true'})
+augroup END
+
+let g:black_virtualenv = '/home/cam/neovim3/'
+
+let g:neoformat_enabled_ocaml = ['ocaml']
+
+function! FormatBuffer()
+  if &filetype ==# 'rust' || &filetype ==# 'haskell' || &filetype ==# 'c' || &filetype ==# 'ocaml'
+    if has("nvim")
+      execute "Neoformat"
+    else
+      execute "Autoformat"
+    endif
+  endif
+  if &filetype ==# 'python'
+    execute "Black"
+  endif
+endfunction
+
+au BufWritePre * call FormatBuffer()
+
+let g:vim_markdown_folding_disabled = 1
+
+let g:neoformat_enabled_ocaml = ['ocamlformat']
+let g:neoformat_enabled_haskell = ['ormolu']
+
+let g:LanguageClient_serverCommands = {
+  \ 'rust': ['rust-analyzer']
+  \ }
+
+let g:LanguageClient_useVirtualText = "No"
+
+function LC_setup()
+  if has_key(g:LanguageClient_serverCommands, &filetype)
+    nmap <Leader>t <Plug>(lcn-hover)
+    nmap J <Plug>(lcn-definition)
+
+    inoremap <expr> <CR> (pumvisible() ? "\<c-y>" : "\<CR>")
+
+    inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ deoplete#manual_complete()
+  endif
+endfunction
+
+autocmd FileType * call LC_setup()
+
+let g:deoplete#enable_at_startup = 1
+
+call deoplete#custom#option('auto_complete', 0)
+
+set completeopt-=preview
+
+function! s:check_back_space() abort "{{{
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~ '\s'
+endfunction "}}}
 

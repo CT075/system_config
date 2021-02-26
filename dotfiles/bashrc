@@ -18,7 +18,7 @@ alias rm='rm -v'
 alias cp='cp -v'
 alias mv='mv -v'
 alias shell='ps -p $$ -o comm='
-alias sml='rlwrap sml'
+alias sml='rlwrap smlnj'
 alias math='rlwrap MathKernel'
 alias coin='rlwrap coin'
 
