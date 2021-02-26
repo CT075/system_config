@@ -1,0 +1,7 @@
+#!/bin/bash
+
+cd ~/System
+for file in $(cat syncs)
+do
+  rclone sync $file remote:
+done

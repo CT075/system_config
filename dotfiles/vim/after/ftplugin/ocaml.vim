@@ -1,0 +1,3 @@
+:echom "ENTERED OCAML.VIM"
+
+
