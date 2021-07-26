@@ -3,6 +3,8 @@ set hidden
 " Better command-line completion
 set wildmenu
 
+let maplocalleader = ",,"
+
 " Ensure that we are in modern vim mode, not backwards-compatible vi mode
 set nocompatible
 set backspace=indent,eol,start
@@ -94,9 +96,11 @@ Plugin 'junegunn/fzf.vim'
 
 Plugin 'ocaml/vim-ocaml'
 
-Plugin 'autozimu/Languageclient-neovim'
+if has("nvim")
+  Plugin 'neovim/nvim-lspconfig'
 
-Plugin 'Shougo/deoplete.nvim'
+  Plugin 'nvim-lua/completion-nvim'
+endif
 
 call vundle#end()
 
@@ -222,7 +226,7 @@ let g:ale_linters = {
       \  'python' : [ 'pylint' ]
       \}
 
-
+" this doesn't actually work either
 if &filetype ==# 'ocaml'
 " aaaaaaaaaaaaaaa ftplugin isn't working so we have to do this every time
 " if neovim stalls on open it's because opam is being terrible
@@ -261,10 +265,8 @@ if &filetype ==# 'ocaml'
   " ## end of OPAM user-setup addition for vim / base ## keep this line
   let g:opamshare = substitute(system('opam config var share'),'\n$','','''')
   execute "set rtp+=" . g:opamshare . "/merlin/vim"
-endif
-
-if &filetype ==# 'ocaml'
   nnoremap <Leader>t :MerlinTypeOf<CR>
+  nnoremap J :MerlinLocate<CR>
 endif
 
 set noshowmode
@@ -302,36 +304,20 @@ let g:vim_markdown_folding_disabled = 1
 let g:neoformat_enabled_ocaml = ['ocamlformat']
 let g:neoformat_enabled_haskell = ['ormolu']
 
-let g:LanguageClient_serverCommands = {
-  \ 'rust': ['rust-analyzer']
-  \ }
+luafile ~/.vim/lsp_config.lua
+sign define LspDiagnosticsSignError text=X
+sign define LspDiagnosticsWarning text=!
+sign define LspDiagnosticsSignHint text=?
 
-let g:LanguageClient_useVirtualText = "No"
+nnoremap <silent> J <cmd>lua vim.lsp.buf.definition()<CR>
+nnoremap <silent> <localleader>t <cmd>lua vim.lsp.buf.hover()<CR>
 
-function LC_setup()
-  if has_key(g:LanguageClient_serverCommands, &filetype)
-    nmap <Leader>t <Plug>(lcn-hover)
-    nmap J <Plug>(lcn-definition)
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
-    inoremap <expr> <CR> (pumvisible() ? "\<c-y>" : "\<CR>")
+set completeopt=menuone,noinsert,noselect
+set shortmess+=c
 
-    inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ deoplete#manual_complete()
-  endif
-endfunction
-
-autocmd FileType * call LC_setup()
-
-let g:deoplete#enable_at_startup = 1
-
-call deoplete#custom#option('auto_complete', 0)
-
-set completeopt-=preview
-
-function! s:check_back_space() abort "{{{
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~ '\s'
-endfunction "}}}
-
+let g:completion_enable_auto_popup = 0
+imap <Tab> <Plug>(completion_smart_tab)
+imap <S-Tab> <Plug>(completion_smart_s_tab)
