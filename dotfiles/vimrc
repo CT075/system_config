@@ -102,6 +102,8 @@ if has("nvim")
   Plugin 'nvim-lua/completion-nvim'
 endif
 
+Plugin 'derekelkins/agda-vim'
+
 call vundle#end()
 
 " Enable filetype detection and syntax highlighting
@@ -144,12 +146,15 @@ set notimeout ttimeout ttimeoutlen=10
 
 let g:bufferline_rotate=1
 
+" Change leader key
+let mapleader=","
+
 " buffer stuff
 map <C-Right> :bnext<CR>
 map <C-Left> :bprevious<CR>
 map <C-k> :bnext<CR>
 map <C-j> :bprevious<CR>
-map <C-W> :bd<CR>
+map <leader>d :bd<CR>
 
 map <C-P> :Files<CR>
 
@@ -163,9 +168,6 @@ nnoremap gV `[v`]
 " ARM assembly syntax
 let asmsyntax='armasm'
 let filetype_inc='armasm'
-
-" Change leader key
-let mapleader=","
 
 " gundo tree
 nnoremap <F2> :GundoToggle<CR>
@@ -273,6 +275,7 @@ set noshowmode
 
 if has("nvim")
   tnoremap <C-\> <C-\><C-n>
+  set inccommand=nosplit
 endif
 
 augroup vimmic_c_ale_config
@@ -303,6 +306,7 @@ let g:vim_markdown_folding_disabled = 1
 
 let g:neoformat_enabled_ocaml = ['ocamlformat']
 let g:neoformat_enabled_haskell = ['ormolu']
+let g:neoformat_enabled_rust = ['rustfmt']
 
 luafile ~/.vim/lsp_config.lua
 sign define LspDiagnosticsSignError text=X
