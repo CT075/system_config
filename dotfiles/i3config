@@ -170,6 +170,7 @@ bindsym $mod+w focus output HDMI-0
 bindsym $mod+e focus output eDP-1-1
 bindsym $mod+Shift+w move workspace to output HDMI-0
 bindsym $mod+Shift+e move workspace to output eDP-1-1
+bindsym $mod+t exec "guake-toggle"
 
 bindsym $mod+Shift+s exec "flameshot gui"
 

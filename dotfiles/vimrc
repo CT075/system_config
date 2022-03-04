@@ -315,6 +315,7 @@ sign define LspDiagnosticsSignHint text=?
 
 nnoremap <silent> J <cmd>lua vim.lsp.buf.definition()<CR>
 nnoremap <silent> <localleader>t <cmd>lua vim.lsp.buf.hover()<CR>
+nnoremap <silent> \<CR> <cmd>lua vim.diagnostic.goto_next()<CR>
 
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
@@ -325,3 +326,5 @@ set shortmess+=c
 let g:completion_enable_auto_popup = 0
 imap <Tab> <Plug>(completion_smart_tab)
 imap <S-Tab> <Plug>(completion_smart_s_tab)
+
+au TextYankPost * silent! lua vim.highlight.on_yank()
