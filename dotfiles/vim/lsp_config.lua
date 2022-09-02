@@ -1,5 +1,16 @@
 lspconfig = require'lspconfig'
-completion_callback = require'completion'.on_attach
 
-lspconfig.rust_analyzer.setup{on_attach=completion_callback}
+opts = {noremap=true, silent=true}
+
+vim.api.nvim_set_keymap('n', '<leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
+vim.api.nvim_set_keymap('n', '\\<CR>', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
+
+local on_attach = function(client, bufnr)
+  vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<localleader>t', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'J', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
+end
+
+lspconfig.rust_analyzer.setup{on_attach=on_attach}
 

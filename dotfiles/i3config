@@ -28,7 +28,10 @@ exec --no-startup-id dex --autostart --environment i3
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
-exec --no-startup-id xidlehook --not-when-fullscreen --not-when-audio --timer 600 '~/.config/i3/lock' ''
+exec --no-startup-id xidlehook --not-when-fullscreen --not-when-audio --timer 600 'xset s activate' ''
+exec --no-startup-id xss-lock -- ~/.config/i3/lock
+
+exec --no-startup-id ~/.fehbg
 
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
@@ -51,7 +54,7 @@ bindsym $mod+Shift+Return exec terminator
 bindsym $mod+Shift+q kill
 
 # start dmenu (a program launcher)
-bindsym $mod+p exec --no-startup-id dmenu_run
+bindsym $mod+p exec --no-startup-id "rofi -theme solarized -modi drun,run -show drun"
 # A more modern dmenu replacement is rofi:
 # bindcode $mod+40 exec "rofi -modi drun,run -show drun"
 # There also is i3-dmenu-desktop which only displays applications shipping a
@@ -137,44 +140,19 @@ bindsym $mod+Shift+0 move container to workspace number $ws10
 # reload the configuration file
 bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
-bindsym $mod+Shift+r restart
+bindsym $mod+Shift+y restart
 
-# resize window (you can also use the mouse for that)
-mode "resize" {
-        # These bindings trigger as soon as you enter the resize mode
-
-        # Pressing left will shrink the window’s width.
-        # Pressing right will grow the window’s width.
-        # Pressing up will shrink the window’s height.
-        # Pressing down will grow the window’s height.
-        bindsym j resize shrink width 10 px or 10 ppt
-        bindsym k resize grow height 10 px or 10 ppt
-        bindsym l resize shrink height 10 px or 10 ppt
-        bindsym semicolon resize grow width 10 px or 10 ppt
-
-        # same bindings, but for the arrow keys
-        bindsym Left resize shrink width 10 px or 10 ppt
-        bindsym Down resize grow height 10 px or 10 ppt
-        bindsym Up resize shrink height 10 px or 10 ppt
-        bindsym Right resize grow width 10 px or 10 ppt
-
-        # back to normal: Enter or Escape or $mod+r
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
-        bindsym $mod+r mode "default"
-}
-
-bindsym $mod+r mode resize
-
-bindsym $mod+w focus output HDMI-0
-bindsym $mod+e focus output eDP-1-1
-bindsym $mod+Shift+w move workspace to output HDMI-0
-bindsym $mod+Shift+e move workspace to output eDP-1-1
+bindsym $mod+w focus output DP-4
+bindsym $mod+e focus output HDMI-0
+bindsym $mod+r focus output eDP-1-1
+bindsym $mod+Shift+w move workspace to output DP-4
+bindsym $mod+Shift+e move workspace to output HDMI-0
+bindsym $mod+Shift+r move workspace to output eDP-1-1
 bindsym $mod+t exec "guake-toggle"
 
 bindsym $mod+Shift+s exec "flameshot gui"
 
-bindsym $mod+x exec "~/.config/i3/lock"
+bindsym $mod+x exec "xset s activate"
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+x exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
 

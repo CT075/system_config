@@ -3,6 +3,8 @@ set hidden
 " Better command-line completion
 set wildmenu
 
+set splitbelow
+
 let maplocalleader = ",,"
 
 " Ensure that we are in modern vim mode, not backwards-compatible vi mode
@@ -18,7 +20,12 @@ if has("nvim")
   let g:python3_host_prog = '/home/cam/neovim3/bin/python'
 endif
 
+set nofoldenable
+let g:vim_markdown_folding_disabled = 1
+
 set hidden
+
+let g:cornelis_agda_prefix = "\\"
 
 filetype off " required for Vundle plugin manager
 " set the runtime path to include Vundle and initialize
@@ -67,7 +74,8 @@ if has("nvim")
 endif
 Plugin 'francoiscabrol/ranger.vim'
 
-" I enjoy looking good
+Plugin 'Asheq/close-buffers.vim'
+
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 "Plugin 'bling/vim-bufferline'
@@ -99,10 +107,13 @@ Plugin 'ocaml/vim-ocaml'
 if has("nvim")
   Plugin 'neovim/nvim-lspconfig'
 
-  Plugin 'nvim-lua/completion-nvim'
+  Plugin 'lifepillar/vim-mucomplete'
 endif
 
-Plugin 'derekelkins/agda-vim'
+Plugin 'kana/vim-textobj-user'
+Plugin 'neovimhaskell/nvim-hs.vim'
+Plugin 'liuchengxu/vim-which-key'
+Plugin 'isovector/cornelis', { 'do': 'stack build' }
 
 call vundle#end()
 
@@ -154,7 +165,7 @@ map <C-Right> :bnext<CR>
 map <C-Left> :bprevious<CR>
 map <C-k> :bnext<CR>
 map <C-j> :bprevious<CR>
-map <leader>d :bd<CR>
+map <leader>d :Bdelete this<CR>
 
 map <C-P> :Files<CR>
 
@@ -290,9 +301,9 @@ let g:neoformat_enabled_ocaml = ['ocaml']
 function! FormatBuffer()
   if &filetype ==# 'rust' || &filetype ==# 'haskell' || &filetype ==# 'c' || &filetype ==# 'ocaml'
     if has("nvim")
-      execute "Neoformat"
+      execute "silent! Neoformat"
     else
-      execute "Autoformat"
+      execute "silent! Autoformat"
     endif
   endif
   if &filetype ==# 'python'
@@ -302,29 +313,51 @@ endfunction
 
 au BufWritePre * call FormatBuffer()
 
-let g:vim_markdown_folding_disabled = 1
-
 let g:neoformat_enabled_ocaml = ['ocamlformat']
 let g:neoformat_enabled_haskell = ['ormolu']
 let g:neoformat_enabled_rust = ['rustfmt']
+
+function! CornelisLoadWrapper()
+  if exists(":CornelisLoad") ==# 2
+    CornelisLoad
+  endif
+endfunction
+
+au BufReadPre *.agda call CornelisLoadWrapper()
+au BufWritePost *.agda execute "normal! :CornelisLoad\<CR>"
+
+au BufRead,BufNewFile *.agda call AgdaFiletype()
+function! AgdaFiletype()
+  let g:cornelis_split_location = 'Bottom'
+
+  nnoremap <buffer> <leader>m :CornelisLoad<CR>
+  nnoremap <buffer> <leader>r :CornelisRefine<CR>
+  nnoremap <buffer> <leader>c :CornelisMakeCase<CR>
+  nnoremap <buffer> <leader>t :CornelisTypeContext<CR>
+  nnoremap <buffer> <leader>T :CornelisTypeContextInfer<CR>
+  nnoremap <buffer> <leader>n :CornelisSolve<CR>
+  nnoremap <buffer> <leader>a :CornelisAuto<CR>
+  nnoremap <buffer> J         :CornelisGoToDefinition<CR>
+  nnoremap <buffer> [/        :CornelisPrevGoal<CR>
+  nnoremap <buffer> ]/        :CornelisNextGoal<CR>
+
+  call cornelis#bind_input("forall", "∀")
+  call cornelis#bind_input(":", "∶")
+  call cornelis#bind_input("Pi", "ℿ")
+  call cornelis#bind_input("mu", "μ")
+  call cornelis#bind_input("nu", "ν")
+  call cornelis#bind_input("nlambda", "ƛ")
+  call cornelis#bind_input("N", "ℕ")
+  call cornelis#bind_input("equiv", "≡")
+  call cornelis#bind_input("nequiv", "≢")
+endfunction
 
 luafile ~/.vim/lsp_config.lua
 sign define LspDiagnosticsSignError text=X
 sign define LspDiagnosticsWarning text=!
 sign define LspDiagnosticsSignHint text=?
 
-nnoremap <silent> J <cmd>lua vim.lsp.buf.definition()<CR>
-nnoremap <silent> <localleader>t <cmd>lua vim.lsp.buf.hover()<CR>
-nnoremap <silent> \<CR> <cmd>lua vim.diagnostic.goto_next()<CR>
-
-inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-
 set completeopt=menuone,noinsert,noselect
 set shortmess+=c
-
-let g:completion_enable_auto_popup = 0
-imap <Tab> <Plug>(completion_smart_tab)
-imap <S-Tab> <Plug>(completion_smart_s_tab)
 
 au TextYankPost * silent! lua vim.highlight.on_yank()
