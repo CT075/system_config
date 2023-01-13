@@ -1,0 +1,18 @@
+#!/bin/sh -e
+
+for OUTPUT in `swaymsg -t get_outputs | jq -r '.[].name'`
+do
+  IMAGE=/tmp/$OUTPUT-lock.png
+  # Take a screenshot
+  grim -o $OUTPUT $IMAGE
+  # Pixellate it 10x
+  mogrify -scale 10% -scale 1000% $IMAGE
+  LOCKARGS="${LOCKARGS} --image ${OUTPUT}:${IMAGE}"
+  IMAGES="${IMAGES} ${IMAGE}"
+done
+
+# Lock screen displaying this image.
+swaylock $LOCKARGS
+rm $IMAGES
+# Turn the screen off after a delay.
+sleep 30; pgrep swaylock && systemctl suspend

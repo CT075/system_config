@@ -314,7 +314,14 @@ endfunction
 au BufWritePre * call FormatBuffer()
 
 let g:neoformat_enabled_ocaml = ['ocamlformat']
+
+let g:neoformat_haskell_ormolu =
+\ { 'exe': 'fourmolu'
+\ , 'args': ['--stdin-input-file', '.']
+\ , 'stdin': 1
+\ }
 let g:neoformat_enabled_haskell = ['ormolu']
+
 let g:neoformat_enabled_rust = ['rustfmt']
 
 function! CornelisLoadWrapper()
