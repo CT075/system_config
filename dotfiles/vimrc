@@ -336,10 +336,11 @@ au BufWritePost *.agda execute "normal! :CornelisLoad\<CR>"
 au BufRead,BufNewFile *.agda call AgdaFiletype()
 function! AgdaFiletype()
   let g:cornelis_split_location = 'Bottom'
+  let g:cornelis_max_size = 15
 
-  nnoremap <buffer> <leader>m :CornelisLoad<CR>
+  nnoremap <buffer> <leader>l :CornelisLoad<CR>
   nnoremap <buffer> <leader>r :CornelisRefine<CR>
-  nnoremap <buffer> <leader>c :CornelisMakeCase<CR>
+  nnoremap <buffer> <leader>g :CornelisMakeCase<CR>
   nnoremap <buffer> <leader>t :CornelisTypeContext<CR>
   nnoremap <buffer> <leader>T :CornelisTypeContextInfer<CR>
   nnoremap <buffer> <leader>n :CornelisSolve<CR>
@@ -355,6 +356,9 @@ function! AgdaFiletype()
   call cornelis#bind_input("nu", "ν")
   call cornelis#bind_input("nlambda", "ƛ")
   call cornelis#bind_input("N", "ℕ")
+  call cornelis#bind_input("Gamma", "Γ")
+  call cornelis#bind_input("tau", "τ")
+  call cornelis#bind_input("vdash", "⊢")
   call cornelis#bind_input("equiv", "≡")
   call cornelis#bind_input("nequiv", "≢")
 endfunction

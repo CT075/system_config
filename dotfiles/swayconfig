@@ -164,11 +164,14 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+y restart
 
-output HDMI-A-1 pos 0 0
-output eDP-1 pos 1920 0
+output DP-2 pos 0 0
+output HDMI-A-1 pos 1920 0
+output eDP-1 pos 3840 0
 
+bindsym $mod+w focus output DP-2
 bindsym $mod+e focus output HDMI-A-1
 bindsym $mod+r focus output eDP-1
+bindsym $mod+Shift+w move workspace to output DP-2
 bindsym $mod+Shift+e move workspace to output HDMI-A-1
 bindsym $mod+Shift+r move workspace to output eDP-1
 
