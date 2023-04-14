@@ -344,6 +344,8 @@ au BufWritePost *.agda execute "normal! :CornelisLoad\<CR>"
 
 au BufRead,BufNewFile *.agda call AgdaFiletype()
 function! AgdaFiletype()
+  let g:cornelis_max_size = 10
+
   let g:cornelis_split_location = 'Bottom'
 
   nnoremap <buffer> <leader>l :CornelisLoad<CR>
