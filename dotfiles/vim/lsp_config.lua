@@ -13,4 +13,14 @@ local on_attach = function(client, bufnr)
 end
 
 lspconfig.rust_analyzer.setup{on_attach=on_attach}
-
+lspconfig.hls.setup{on_attach=on_attach}
+lspconfig.metals.setup{on_attach=on_attach}
+lspconfig.anakin_language_server.setup{
+  on_attach=on_attach,
+  settings={
+    anakinls={
+      pyflakes_errors={ "ImportStarNotPermitted", "UndefinedExport", "UndefinedLocal", "UndefinedName", "DuplicateArgument", "MultiValueRepeatedKeyLiteral", "MultiValueRepeatedKeyVariable", "FutureFeatureNotDefined", "LateFutureImport", "ReturnOutsideFunction", "YieldOutsideFunction", "ContinueOutsideLoop", "BreakOutsideLoop", "TwoStarredExpressions", "TooManyExpressionsInStarredAssignment", "ForwardAnnotationSyntaxError", "RaiseNotImplemented", "StringDotFormatExtraPositionalArguments", "StringDotFormatExtraNamedArguments", "StringDotFormatMissingArgument", "StringDotFormatMixingAutomatic", "StringDotFormatInvalidFormat", "PercentFormatInvalidFormat", "PercentFormatMixedPositionalAndNamed", "PercentFormatUnsupportedFormat", "PercentFormatPositionalCountMismatch", "PercentFormatExtraNamedArguments", "PercentFormatMissingArgument", "PercentFormatExpectedMapping", "PercentFormatExpectedSequence", "PercentFormatStarRequiresSequence" },
+      mypy_enabled=true,
+    },
+  }
+}

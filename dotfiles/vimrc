@@ -5,6 +5,8 @@ set wildmenu
 
 set splitbelow
 
+let g:airline_powerline_fonts = 1
+
 let maplocalleader = ",,"
 
 " Ensure that we are in modern vim mode, not backwards-compatible vi mode
@@ -114,6 +116,9 @@ Plugin 'kana/vim-textobj-user'
 Plugin 'neovimhaskell/nvim-hs.vim'
 Plugin 'liuchengxu/vim-which-key'
 Plugin 'isovector/cornelis', { 'do': 'stack build' }
+Plugin 'whonore/Coqtail'
+
+Plugin 'NLKNguyen/papercolor-theme'
 
 call vundle#end()
 
@@ -135,6 +140,12 @@ set shiftwidth=2
 set expandtab
 
 hi clear SignColumn
+
+augroup CoqtailHighlights
+  autocmd!
+  autocmd ColorScheme * hi def CoqtailChecked ctermbg=darkblue guibg=darkblue
+  autocmd ColorScheme * hi def CoqtailSent    ctermbg=blue guibg=blue
+augroup END
 
 if exists('+termguicolors')
   let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
@@ -236,7 +247,8 @@ let g:ale_linters = {
       \  'ocaml' : ['merlin'],
       \  'bash' : [],
       \  'haskell' : ['stack-build'],
-      \  'python' : [ 'pylint' ]
+      \  'python' : [ 'pylint' ],
+      \  'scala' : []
       \}
 
 " this doesn't actually work either
@@ -296,10 +308,8 @@ augroup END
 
 let g:black_virtualenv = '/home/cam/neovim3/'
 
-let g:neoformat_enabled_ocaml = ['ocaml']
-
 function! FormatBuffer()
-  if &filetype ==# 'rust' || &filetype ==# 'haskell' || &filetype ==# 'c' || &filetype ==# 'ocaml'
+  if &filetype ==# 'rust' || &filetype ==# 'c' || &filetype ==# 'ocaml'
     if has("nvim")
       execute "silent! Neoformat"
     else
@@ -314,7 +324,6 @@ endfunction
 au BufWritePre * call FormatBuffer()
 
 let g:neoformat_enabled_ocaml = ['ocamlformat']
-
 let g:neoformat_haskell_ormolu =
 \ { 'exe': 'fourmolu'
 \ , 'args': ['--stdin-input-file', '.']
@@ -335,6 +344,8 @@ au BufWritePost *.agda execute "normal! :CornelisLoad\<CR>"
 
 au BufRead,BufNewFile *.agda call AgdaFiletype()
 function! AgdaFiletype()
+  let g:cornelis_max_size = 10
+
   let g:cornelis_split_location = 'Bottom'
   let g:cornelis_max_size = 15
 
@@ -346,8 +357,8 @@ function! AgdaFiletype()
   nnoremap <buffer> <leader>n :CornelisSolve<CR>
   nnoremap <buffer> <leader>a :CornelisAuto<CR>
   nnoremap <buffer> J         :CornelisGoToDefinition<CR>
-  nnoremap <buffer> [/        :CornelisPrevGoal<CR>
-  nnoremap <buffer> ]/        :CornelisNextGoal<CR>
+  nnoremap <buffer> <localleader>k :CornelisPrevGoal<CR>
+  nnoremap <buffer> <localleader>j :CornelisNextGoal<CR>
 
   call cornelis#bind_input("forall", "∀")
   call cornelis#bind_input(":", "∶")
@@ -361,7 +372,18 @@ function! AgdaFiletype()
   call cornelis#bind_input("vdash", "⊢")
   call cornelis#bind_input("equiv", "≡")
   call cornelis#bind_input("nequiv", "≢")
+  call cornelis#bind_input("Gamma", "Γ")
+  call cornelis#bind_input("tau", "τ")
+  call cornelis#bind_input("rho", "ρ")
+  call cornelis#bind_input("ell", "ℓ")
+  call cornelis#bind_input("Z", "ℤ")
+  call cornelis#bind_input("lambda", "λ")
+  call cornelis#bind_input("vdash", "⊢")
+  call cornelis#bind_input("mapsto", "↦")
+  call cornelis#bind_input("[.]", "⊡")
 endfunction
+
+let g:coqtail_auto_set_proof_diffs = 'on'
 
 luafile ~/.vim/lsp_config.lua
 sign define LspDiagnosticsSignError text=X

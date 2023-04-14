@@ -144,12 +144,10 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+y restart
 
-bindsym $mod+w focus output DP-4
-bindsym $mod+e focus output HDMI-0
-bindsym $mod+r focus output eDP-1-1
-bindsym $mod+Shift+w move workspace to output DP-4
-bindsym $mod+Shift+e move workspace to output HDMI-0
-bindsym $mod+Shift+r move workspace to output eDP-1-1
+bindsym $mod+e focus output DP-5
+bindsym $mod+r focus output eDP-1
+bindsym $mod+Shift+e move workspace to output DP-5
+bindsym $mod+Shift+r move workspace to output eDP-1
 bindsym $mod+t exec "guake-toggle"
 
 bindsym $mod+Shift+s exec "flameshot gui"
