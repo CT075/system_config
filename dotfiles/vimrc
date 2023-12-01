@@ -43,9 +43,6 @@ Plugin 'mbbill/undotree'
 " Syntastic
 "Plugin 'vim-syntastic/syntastic'
 
-" Async syntax checking!
-Plugin 'w0rp/ale'
-
 " Whitespace
 Plugin 'ntpeters/vim-better-whitespace'
 
@@ -78,11 +75,9 @@ Plugin 'Asheq/close-buffers.vim'
 
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-"Plugin 'bling/vim-bufferline'
 
 Plugin 'tpope/vim-fugitive'
 
-" git gutter
 Plugin 'airblade/vim-gitgutter'
 
 Plugin 'christophermca/meta5'
@@ -108,12 +103,20 @@ if has("nvim")
   Plugin 'neovim/nvim-lspconfig'
 
   Plugin 'lifepillar/vim-mucomplete'
-endif
 
-Plugin 'kana/vim-textobj-user'
-Plugin 'neovimhaskell/nvim-hs.vim'
-Plugin 'liuchengxu/vim-which-key'
-Plugin 'isovector/cornelis', { 'do': 'stack build' }
+  Plugin 'kana/vim-textobj-user'
+  Plugin 'neovimhaskell/nvim-hs.vim'
+  Plugin 'liuchengxu/vim-which-key'
+  Plugin 'isovector/cornelis', { 'do': 'stack build' }
+
+  Plugin 'nvim-lua/plenary.nvim'
+  Plugin 'scalameta/nvim-metals'
+
+  Plugin 'lervag/vimtex'
+
+  Plugin 'MunifTanjim/nui.nvim'
+  Plugin 'ShinKage/idris2-nvim'
+endif
 
 call vundle#end()
 
@@ -225,33 +228,19 @@ set mouse=a
 let g:airline_theme='luna'
 let g:bufferline_echo=0
 
-let g:ale_sign_error = '>>'
-let g:ale_sign_warning = '!!'
-let g:ale_set_highlights = 0
-
-let g:airline#extensions#ale#enabled = 1
-let g:ale_linters = {
-      \  'tex' : [],
-      \  'latex' : [],
-      \  'ocaml' : ['merlin'],
-      \  'bash' : [],
-      \  'haskell' : ['stack-build'],
-      \  'python' : [ 'pylint' ]
-      \}
-
 " this doesn't actually work either
 if &filetype ==# 'ocaml'
 " aaaaaaaaaaaaaaa ftplugin isn't working so we have to do this every time
 " if neovim stalls on open it's because opam is being terrible
 
   " ## added by OPAM user-setup for vim / base ## 93ee63e278bdfc07d1139a748ed3fff2 ## you can edit, but keep this line
-  let s:opam_share_dir = system("opam config var share")
+  let s:opam_share_dir = system("opam var share")
   let s:opam_share_dir = substitute(s:opam_share_dir, '[\r\n]*$', '', '')
 
   let s:opam_configuration = {}
 
   function! OpamConfOcpIndent()
-    execute "set rtp^=" . s:opam_share_dir . "/ocp-indent/vim"
+    "execute "set rtp^=" . s:opam_share_dir . "/ocp-indent/vim"
   endfunction
   let s:opam_configuration['ocp-indent'] = function('OpamConfOcpIndent')
 
@@ -276,7 +265,7 @@ if &filetype ==# 'ocaml'
     endif
   endfor
   " ## end of OPAM user-setup addition for vim / base ## keep this line
-  let g:opamshare = substitute(system('opam config var share'),'\n$','','''')
+  let g:opamshare = substitute(system('opam var share'),'\n$','','''')
   execute "set rtp+=" . g:opamshare . "/merlin/vim"
   nnoremap <Leader>t :MerlinTypeOf<CR>
   nnoremap J :MerlinLocate<CR>
@@ -288,11 +277,6 @@ if has("nvim")
   tnoremap <C-\> <C-\><C-n>
   set inccommand=nosplit
 endif
-
-augroup vimmic_c_ale_config
-  autocmd FileType c let g:ale_c_gcc_executable = Filify#process('.ale_config', {'default_return':'gcc', 'recurse':'true'})
-  autocmd FileType h let g:ale_c_gcc_executable = Filify#process('.ale_config', {'default_return':'gcc', 'recurse':'true'})
-augroup END
 
 let g:black_virtualenv = '/home/cam/neovim3/'
 
@@ -307,7 +291,7 @@ function! FormatBuffer()
     endif
   endif
   if &filetype ==# 'python'
-    execute "Black"
+    " execute "Black"
   endif
 endfunction
 
