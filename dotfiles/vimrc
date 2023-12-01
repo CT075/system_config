@@ -77,11 +77,9 @@ Plugin 'Asheq/close-buffers.vim'
 
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-"Plugin 'bling/vim-bufferline'
 
 Plugin 'tpope/vim-fugitive'
 
-" git gutter
 Plugin 'airblade/vim-gitgutter'
 
 Plugin 'christophermca/meta5'
@@ -110,19 +108,20 @@ if has("nvim")
 
   Plugin 'kana/vim-textobj-user'
   Plugin 'neovimhaskell/nvim-hs.vim'
+  Plugin 'liuchengxu/vim-which-key'
   Plugin 'isovector/cornelis', { 'do': 'stack build' }
+
   Plugin 'nvim-lua/plenary.nvim'
-  Plugin 'scalameta/nvim-metals.git'
+  Plugin 'scalameta/nvim-metals'
+
+  Plugin 'lervag/vimtex'
+
   Plugin 'MunifTanjim/nui.nvim'
   Plugin 'ShinKage/idris2-nvim'
+
+  Plugin 'whonore/Coqtail'
+  Plugin 'NLKNguyen/papercolor-theme'
 endif
-
-Plugin 'liuchengxu/vim-which-key'
-Plugin 'whonore/Coqtail'
-
-Plugin 'NLKNguyen/papercolor-theme'
-
-Plugin 'lervag/vimtex'
 
 call vundle#end()
 
@@ -252,7 +251,7 @@ if &filetype ==# 'ocaml'
   let s:opam_configuration = {}
 
   function! OpamConfOcpIndent()
-    execute "set rtp^=" . s:opam_share_dir . "/ocp-indent/vim"
+    "execute "set rtp^=" . s:opam_share_dir . "/ocp-indent/vim"
   endfunction
   let s:opam_configuration['ocp-indent'] = function('OpamConfOcpIndent')
 
@@ -301,7 +300,7 @@ function! FormatBuffer()
     endif
   endif
   if &filetype ==# 'python'
-    execute "Black"
+    " execute "Black"
   endif
 endfunction
 
