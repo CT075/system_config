@@ -38,16 +38,12 @@ bindsym --locked XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ to
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
 # they are included here as an example. Modify as you see fit.
 
-# xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
-# screen before suspend. Use loginctl lock-session to lock your screen.
-
 exec swayidle -w timeout 600 '~/.config/sway/lock' before-sleep 'block'
 
 output * bg '/home/cam/System/wallpaper.png' center #000000
 
 exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK
-exec hash dbus-update-activation-environment 2>/dev/null && \
-     dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK
+exec hash dbus-update-activation-environment 2>/dev/null && dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK
 
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
@@ -56,8 +52,14 @@ exec nm-applet
 exec sway-audio-idle-inhibit
 
 # dropdown terminal support
-exec ~/.local/bin/kitti3 -p TC
-bindsym $mod+t nop kitti3
+set $title dropdown-scratch
+set $term kitty --class=$title
+
+for_window [app_id="$title"] floating enable, move scratchpad, resize set width 1000 height 900
+
+# Execute your preferred terminal emulator in scratchpad
+exec $term
+bindsym $mod+t scratchpad show
 
 # Use pactl to adjust volume in PulseAudio.
 set $refresh_i3status killall -SIGUSR1 i3status
@@ -161,6 +163,15 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+y restart
 
+#output eDP-1 pos 0 0
+#output HDMI-A-1 pos 1920 0 res 1920x1080
+
+#bindsym $mod+e focus output eDP-1
+#bindsym $mod+r focus output HDMI-A-1
+
+#bindsym $mod+Shift+e move workspace to output eDP-1
+#bindsym $mod+Shift+r move workspace to output HDMI-A-1
+
 output DP-2 pos 0 0
 output HDMI-A-1 pos 1920 0
 output eDP-1 pos 3840 0
@@ -172,14 +183,16 @@ bindsym $mod+Shift+w move workspace to output DP-2
 bindsym $mod+Shift+e move workspace to output HDMI-A-1
 bindsym $mod+Shift+r move workspace to output eDP-1
 
-bindsym $mod+Shift+s exec grim -g "$(slurp -d)" - | wl-copy -t image/png
+for_window [app_id="flameshot"] border pixel 0, floating enable, fullscreen disable, move absolute position 0 0
+bindsym $mod+s exec flameshot gui --raw | wl-copy
+bindsym $mod+Shift+s exec flameshot gui
 
 bindsym $mod+x exec "~/.config/sway/lock"
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+x exec "swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'"
 
 mode "startapp" {
-        bindsym $mod+c exec "i3-msg mode default; vivaldi"
+        bindsym $mod+c exec "i3-msg mode default; brave-browser"
         bindsym $mod+f exec "i3-msg mode default; nautilus"
 
         bindsym Return mode "default"

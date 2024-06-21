@@ -25,9 +25,17 @@ endif
 set nofoldenable
 let g:vim_markdown_folding_disabled = 1
 
+let g:vim_markdown_math = 1
+let g:vim_markdown_frontmatter = 1
+
 set hidden
 
 let g:cornelis_agda_prefix = "\\"
+
+let g:ranger_replace_netrw = 1
+let g:NERDTreeHijackNetrw = 0
+
+let g:current_line_whitespace_disabled_soft = 1
 
 filetype off " required for Vundle plugin manager
 " set the runtime path to include Vundle and initialize
@@ -35,6 +43,8 @@ set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
 " let Vundle manage Vundle, required Plugin 'gmarik/Vundle.vim' vim-c0 plugin on Github repo
+Plugin 'gmarik/Vundle.vim'
+
 Plugin 'cmugpi/vim-c0'
 
 Plugin 'mbbill/undotree'
@@ -58,7 +68,7 @@ Plugin 'neovimhaskell/haskell-vim'
 Plugin 'itchyny/vim-haskell-indent'
 
 Plugin 'godlygeek/tabular'
-Plugin 'plasticboy/vim-markdown'
+Plugin 'preservim/vim-markdown'
 
 " Surround
 Plugin 'tpope/vim-surround'
@@ -121,7 +131,12 @@ if has("nvim")
 
   Plugin 'whonore/Coqtail'
   Plugin 'NLKNguyen/papercolor-theme'
+
+  Plugin 'kaarmu/typst.vim'
 endif
+
+Plugin 'dpc/vim-armasm'
+Plugin 'CT075/gbafe-event.vim'
 
 call vundle#end()
 
@@ -292,7 +307,7 @@ endif
 let g:black_virtualenv = '/home/cam/neovim3/'
 
 function! FormatBuffer()
-  if &filetype ==# 'rust' || &filetype ==# 'c' || &filetype ==# 'ocaml'
+  if &filetype ==# 'rust' || &filetype ==# 'c' || &filetype ==# 'ocaml' || &filetype ==# 'haskell'
     if has("nvim")
       execute "silent! Neoformat"
     else
@@ -315,6 +330,14 @@ let g:neoformat_haskell_ormolu =
 let g:neoformat_enabled_haskell = ['ormolu']
 
 let g:neoformat_enabled_rust = ['rustfmt']
+
+let g:neoformat_c_clangformat =
+\ { 'exe': 'clang-format'
+\ , 'args': ['-style=file']
+\ , 'stdin': 1
+\ }
+
+let g:neoformat_enabled_c = ['clangformat']
 
 function! CornelisLoadWrapper()
   if exists(":CornelisLoad") ==# 2
@@ -363,6 +386,8 @@ function! AgdaFiletype()
   call cornelis#bind_input("vdash", "⊢")
   call cornelis#bind_input("mapsto", "↦")
   call cornelis#bind_input("[.]", "⊡")
+  call cornelis#bind_input("o/", "∅")
+  call cornelis#bind_input("ltri", "◃")
 endfunction
 
 let g:coqtail_auto_set_proof_diffs = 'on'
