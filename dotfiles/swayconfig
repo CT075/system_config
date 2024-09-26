@@ -163,12 +163,14 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+y restart
 
-#output eDP-1 pos 0 0
-#output HDMI-A-1 pos 1920 0 res 1920x1080
+output eDP-1 pos 0 0
+output HDMI-A-1 pos 1920 0 res 1920x1080
 
+#bindsym $mod+w focus output eDP-1
 #bindsym $mod+e focus output eDP-1
 #bindsym $mod+r focus output HDMI-A-1
 
+#bindsym $mod+Shift+w move workspace to output eDP-1
 #bindsym $mod+Shift+e move workspace to output eDP-1
 #bindsym $mod+Shift+r move workspace to output HDMI-A-1
 
@@ -185,7 +187,8 @@ bindsym $mod+Shift+r move workspace to output eDP-1
 
 for_window [app_id="flameshot"] border pixel 0, floating enable, fullscreen disable, move absolute position 0 0
 bindsym $mod+s exec flameshot gui --raw | wl-copy
-bindsym $mod+Shift+s exec flameshot gui
+#bindsym $mod+Shift+s exec flameshot gui
+bindsym $mod+Shift+s exec grim -g "$(slurp -d)" - | wl-copy -t image/png
 
 bindsym $mod+x exec "~/.config/sway/lock"
 # exit i3 (logs you out of your X session)

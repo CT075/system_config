@@ -133,10 +133,13 @@ if has("nvim")
   Plugin 'NLKNguyen/papercolor-theme'
 
   Plugin 'kaarmu/typst.vim'
+
+  Plugin 'Julian/lean.nvim'
 endif
 
 Plugin 'dpc/vim-armasm'
 Plugin 'CT075/gbafe-event.vim'
+Plugin 'will133/vim-dirdiff'
 
 call vundle#end()
 
@@ -307,7 +310,7 @@ endif
 let g:black_virtualenv = '/home/cam/neovim3/'
 
 function! FormatBuffer()
-  if &filetype ==# 'rust' || &filetype ==# 'c' || &filetype ==# 'ocaml' || &filetype ==# 'haskell'
+  if &filetype ==# 'rust' || &filetype ==# 'ocaml' || &filetype ==# 'haskell'
     if has("nvim")
       execute "silent! Neoformat"
     else
