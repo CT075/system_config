@@ -37,6 +37,8 @@ let g:NERDTreeHijackNetrw = 0
 
 let g:current_line_whitespace_disabled_soft = 1
 
+let g:vimtex_mappings_enabled = 0
+
 filetype off " required for Vundle plugin manager
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
@@ -169,8 +171,8 @@ augroup CoqtailHighlights
 augroup END
 
 if exists('+termguicolors')
-  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+  "let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  "let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
   set termguicolors
   colorscheme molokai
 endif
@@ -399,6 +401,8 @@ luafile ~/.vim/lsp_config.lua
 sign define LspDiagnosticsSignError text=X
 sign define LspDiagnosticsWarning text=!
 sign define LspDiagnosticsSignHint text=?
+hi DiagnosticError ctermfg=196  guifg=#ff0000
+hi! link DiagnosticUnderlineError SpellBad
 
 set completeopt=menuone,noinsert,noselect
 set shortmess+=c
