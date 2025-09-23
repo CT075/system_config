@@ -50,7 +50,7 @@ exec sway-audio-idle-inhibit
 set $title dropdown-scratch
 set $term kitty --class=$title
 
-for_window [app_id="$title"] floating enable, move scratchpad, resize set width 1000 height 900
+for_window [app_id="$title"] floating enable, move scratchpad, resize set width 500 height 400
 
 # Execute your preferred terminal emulator in scratchpad
 exec $term
@@ -67,7 +67,7 @@ bindsym --locked XF86MonBrightnessUp exec light -S "$(light -G | awk '{ print in
 bindsym --locked XF86MonBrightnessDown exec light -S "$(light -G | awk '{ print int($1 / 1.4) }')"
 
 # start a terminal
-bindsym $mod+Shift+Return exec kitty
+bindsym $mod+Shift+Return exec alacritty
 
 # kill focused window
 bindsym $mod+Shift+q kill

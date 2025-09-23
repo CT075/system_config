@@ -115,13 +115,15 @@ Plugin 'ocaml/vim-ocaml'
 
 if has("nvim")
   Plugin 'neovim/nvim-lspconfig'
+  Plugin 'mason-org/mason.nvim'
+  Plugin 'mason-org/mason-lspconfig.nvim'
 
   Plugin 'lifepillar/vim-mucomplete'
 
   Plugin 'kana/vim-textobj-user'
   Plugin 'neovimhaskell/nvim-hs.vim'
   Plugin 'liuchengxu/vim-which-key'
-  Plugin 'isovector/cornelis', { 'do': 'stack build' }
+  Plugin 'isovector/cornelis', { 'do': 'stack build', 'tag': '2.7.*' }
 
   Plugin 'nvim-lua/plenary.nvim'
   Plugin 'scalameta/nvim-metals'
