@@ -394,7 +394,8 @@ function! AgdaFiletype()
   call cornelis#bind_input("mapsto", "↦")
   call cornelis#bind_input("[.]", "⊡")
   call cornelis#bind_input("o/", "∅")
-  call cornelis#bind_input("ltri", "◃")
+  call cornelis#bind_input("rtri", "▷")
+  call cornelis#bind_input("Darrow", "⇓")
 endfunction
 
 let g:coqtail_auto_set_proof_diffs = 'on'

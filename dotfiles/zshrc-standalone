@@ -1,0 +1,42 @@
+#
+# Executes commands at the start of an interactive session.
+#
+# Authors:
+#   Sorin Ionescu <sorin.ionescu@gmail.com>
+#
+
+# Source Prezto.
+if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+fi
+
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+
+# Customize to your needs...
+
+MODE_CURSOR_VIINS="steady bar"
+MODE_CURSOR_REPLACE="steady underline"
+MODE_CURSOR_SEARCH="#ff00ff steady underline"
+bindkey -v
+source "$HOME/.config/zsh-vim-mode/zsh-vim-mode.plugin.zsh"
+# Put this in .zshrc, after this plugin is loaded
+bindkey -rpM viins '^[^['
+
+export EDITOR=nvim
+export VISUAL=nvim
+export PATH=$PATH:/home/cam/.local/bin
+
+[ -f "/home/cam/.ghcup/env" ] && source "/home/cam/.ghcup/env" # ghcup-env
+. $HOME/.cargo/env
+
+export DEVKITPRO=/opt/devkitpro
+export DEVKITARM=${DEVKITPRO}/devkitARM
+export DEVKITPPC=${DEVKITPRO}/devkitPPC
+
+export FZF_DEFAULT_COMMAND='rg --files --hidden'
+
+alias tmux='echo use zellij'
+#source ~/.local/share/copper/cu-setup
+alias in='task add +in'
+
+[ "$TERM" = "alacritty" ] && alias ssh='TERM=xterm-256color ssh'
