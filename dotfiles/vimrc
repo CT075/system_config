@@ -25,11 +25,18 @@ endif
 set nofoldenable
 let g:vim_markdown_folding_disabled = 1
 
+let g:vim_markdown_math = 1
+let g:vim_markdown_frontmatter = 1
+
 set hidden
 
 let g:cornelis_agda_prefix = "\\"
 
 let g:ranger_replace_netrw = 1
+
+let g:current_line_whitespace_disabled_soft = 1
+
+let g:vimtex_mappings_enabled = 0
 
 filetype off " required for Vundle plugin manager
 " set the runtime path to include Vundle and initialize
@@ -37,6 +44,8 @@ set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
 " let Vundle manage Vundle, required Plugin 'gmarik/Vundle.vim' vim-c0 plugin on Github repo
+Plugin 'gmarik/Vundle.vim'
+
 Plugin 'cmugpi/vim-c0'
 
 Plugin 'mbbill/undotree'
@@ -60,7 +69,7 @@ Plugin 'neovimhaskell/haskell-vim'
 Plugin 'itchyny/vim-haskell-indent'
 
 Plugin 'godlygeek/tabular'
-Plugin 'plasticboy/vim-markdown'
+Plugin 'preservim/vim-markdown'
 
 " Surround
 Plugin 'tpope/vim-surround'
@@ -107,6 +116,8 @@ Plugin 'tpope/vim-abolish'
 
 if has("nvim")
   Plugin 'neovim/nvim-lspconfig'
+  Plugin 'mason-org/mason.nvim'
+  Plugin 'mason-org/mason-lspconfig.nvim'
 
   Plugin 'kana/vim-textobj-user'
   Plugin 'neovimhaskell/nvim-hs.vim'
@@ -126,7 +137,13 @@ if has("nvim")
 
   Plugin 'kaarmu/typst.vim'
   Plugin 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+
+  Plugin 'Julian/lean.nvim'
 endif
+
+Plugin 'dpc/vim-armasm'
+Plugin 'CT075/gbafe-event.vim'
+Plugin 'will133/vim-dirdiff'
 
 call vundle#end()
 
@@ -156,8 +173,8 @@ augroup CoqtailHighlights
 augroup END
 
 if exists('+termguicolors')
-  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+  "let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  "let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
   set termguicolors
   colorscheme molokai
 endif
@@ -321,6 +338,14 @@ let g:neoformat_enabled_haskell = ['ormolu']
 
 let g:neoformat_enabled_rust = ['rustfmt']
 
+let g:neoformat_c_clangformat =
+\ { 'exe': 'clang-format'
+\ , 'args': ['-style=file']
+\ , 'stdin': 1
+\ }
+
+let g:neoformat_enabled_c = ['clangformat']
+
 function! CornelisLoadWrapper()
   if exists(":CornelisLoad") ==# 2
     CornelisLoad
@@ -390,6 +415,8 @@ luafile ~/.vim/lsp_config.lua
 sign define LspDiagnosticsSignError text=X
 sign define LspDiagnosticsWarning text=!
 sign define LspDiagnosticsSignHint text=?
+hi DiagnosticError ctermfg=196  guifg=#ff0000
+hi! link DiagnosticUnderlineError SpellBad
 
 set completeopt=menuone,noinsert,noselect
 set shortmess+=c

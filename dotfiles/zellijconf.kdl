@@ -106,6 +106,7 @@ keybinds clear-defaults=true {
             }
             SwitchToMode "normal"
         }
+        bind "Ctrl y" { SwitchToMode "normal"; }
     }
     shared_except "locked" "tmux" {
         bind "Ctrl a" { SwitchToMode "tmux"; }
