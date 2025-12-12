@@ -63,4 +63,11 @@ for _, method in ipairs({ 'textDocument/diagnostic', 'workspace/diagnostic' }) d
     end
 end
 
+vim.lsp.config('rust_analyzer', {on_attach=on_attach})
+vim.lsp.config('hls', {
+  on_attach=on_attach,
+  settings={haskell={plugin={stan={globalOn=false}}}}
+})
+vim.lsp.config('pyright', {on_attach=on_attach})
+
 vim.lsp.enable('hls')
