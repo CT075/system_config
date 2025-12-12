@@ -37,117 +37,94 @@ let g:NERDTreeHijackNetrw = 0
 
 let g:current_line_whitespace_disabled_soft = 1
 
+"let g:tex_fast = ""
+let g:vimtex_syntax_enabled = 0
 let g:vimtex_mappings_enabled = 0
-
-filetype off " required for Vundle plugin manager
-" set the runtime path to include Vundle and initialize
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
-
-" let Vundle manage Vundle, required Plugin 'gmarik/Vundle.vim' vim-c0 plugin on Github repo
-Plugin 'gmarik/Vundle.vim'
-
-Plugin 'cmugpi/vim-c0'
-
-Plugin 'mbbill/undotree'
-
-" NERD tree
-"Plugin 'scrooloose/nerdtree'
-
-" Syntastic
-"Plugin 'vim-syntastic/syntastic'
-
-" Whitespace
-Plugin 'ntpeters/vim-better-whitespace'
-
-" Language-specific plugins
-Plugin 'jez/vim-better-sml'
-" This is not the 'official' rust.vim plugin because it doesn't support cargo
-" (yet)
-"Plugin 'mckinnsb/rust.vim'
-
-Plugin 'neovimhaskell/haskell-vim'
-Plugin 'itchyny/vim-haskell-indent'
-
-Plugin 'godlygeek/tabular'
-Plugin 'preservim/vim-markdown'
-
-" Surround
-Plugin 'tpope/vim-surround'
-
-" Let's repeat things!
-Plugin 'tpope/vim-repeat'
-
-Plugin 'scrooloose/nerdcommenter'
-
-if has("nvim")
-  Plugin 'rbgrouleff/bclose.vim'
+let g:vimtex_syntax_conceal = {}
+let g:vimtex_fold_enabled = 0
+"let g:vimtex_enabled = 0
+"
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
-Plugin 'francoiscabrol/ranger.vim'
 
-Plugin 'Asheq/close-buffers.vim'
+call plug#begin()
 
-Plugin 'vim-airline/vim-airline'
-Plugin 'vim-airline/vim-airline-themes'
+Plug 'ntpeters/vim-better-whitespace'
 
-Plugin 'tpope/vim-fugitive'
+Plug 'neovimhaskell/haskell-vim'
+Plug 'itchyny/vim-haskell-indent'
 
-Plugin 'airblade/vim-gitgutter'
-
-Plugin 'christophermca/meta5'
-Plugin 'flazz/vim-colorschemes'
-
-Plugin 'tpope/vim-obsession'
-
-Plugin 'CharlesGueunet/VimFilify'
+Plug 'godlygeek/tabular'
+Plug 'preservim/vim-markdown'
 
 if has("nvim")
-  Plugin 'sbdchd/neoformat'
+  Plug 'rbgrouleff/bclose.vim'
+endif
+Plug 'francoiscabrol/ranger.vim'
+
+Plug 'Asheq/close-buffers.vim'
+
+Plug 'nvim-lualine/lualine.nvim'
+Plug 'nvim-tree/nvim-web-devicons'
+Plug 'akinsho/bufferline.nvim'
+
+Plug 'christophermca/meta5'
+Plug 'flazz/vim-colorschemes'
+
+Plug 'tpope/vim-obsession'
+
+Plug 'CharlesGueunet/VimFilify'
+
+if has("nvim")
+  Plug 'sbdchd/neoformat'
 else
-  Plugin 'Chiel92/vim-autoformat'
+  Plug 'Chiel92/vim-autoformat'
 endif
 
-Plugin 'psf/black'
+Plug 'psf/black'
 
-Plugin 'junegunn/fzf.vim'
+Plug 'junegunn/fzf.vim'
 
-Plugin 'ocaml/vim-ocaml'
+Plug 'ocaml/vim-ocaml'
 
 if has("nvim")
-  Plugin 'neovim/nvim-lspconfig'
-  Plugin 'mason-org/mason.nvim'
-  Plugin 'mason-org/mason-lspconfig.nvim'
+  Plug 'neovim/nvim-lspconfig'
+  Plug 'mason-org/mason.nvim'
+  Plug 'mason-org/mason-lspconfig.nvim'
 
-  Plugin 'lifepillar/vim-mucomplete'
+  Plug 'lifepillar/vim-mucomplete'
 
-  Plugin 'kana/vim-textobj-user'
-  Plugin 'neovimhaskell/nvim-hs.vim'
-  Plugin 'liuchengxu/vim-which-key'
-  Plugin 'isovector/cornelis', { 'do': 'stack build', 'tag': '2.7.*' }
+  Plug 'kana/vim-textobj-user'
+  Plug 'neovimhaskell/nvim-hs.vim'
+  Plug 'liuchengxu/vim-which-key'
+  Plug 'isovector/cornelis', { 'do': 'stack build' }
 
-  Plugin 'nvim-lua/plenary.nvim'
-  Plugin 'scalameta/nvim-metals'
+  Plug 'nvim-lua/plenary.nvim'
+  Plug 'scalameta/nvim-metals'
 
-  Plugin 'lervag/vimtex'
+  Plug 'lervag/vimtex'
 
-  Plugin 'MunifTanjim/nui.nvim'
-  Plugin 'ShinKage/idris2-nvim'
+  Plug 'MunifTanjim/nui.nvim'
+  Plug 'ShinKage/idris2-nvim'
 
-  Plugin 'whonore/Coqtail'
-  Plugin 'NLKNguyen/papercolor-theme'
+  Plug 'whonore/Coqtail'
+  Plug 'NLKNguyen/papercolor-theme'
 
-  Plugin 'kaarmu/typst.vim'
+  Plug 'kaarmu/typst.vim'
 
-  Plugin 'Julian/lean.nvim'
+  Plug 'Julian/lean.nvim'
 endif
 
-Plugin 'dpc/vim-armasm'
-Plugin 'CT075/gbafe-event.vim'
-Plugin 'will133/vim-dirdiff'
+Plug 'dpc/vim-armasm'
+Plug 'CT075/gbafe-event.vim'
+Plug 'will133/vim-dirdiff'
+Plug 'nvim-treesitter/nvim-treesitter', { 'branch': 'main' }
 
-call vundle#end()
+call plug#end()
 
-" Enable filetype detection and syntax highlighting
 syntax on
 filetype on
 filetype indent on
@@ -155,8 +132,6 @@ filetype plugin on
 
 let g:airline#extensions#tabline#enabled = 1
 
-" Helpful information: cursor position in bottom right, line numbers on
-" left
 set ruler
 set number
 
@@ -179,13 +154,8 @@ if exists('+termguicolors')
   colorscheme molokai
 endif
 
-" Indent as intelligently as vim knows how
 set smartindent
-
-" Show multicharacter commands as they are being typed
 set showcmd
-
-" Show 80 character limit line
 set colorcolumn=80
 
 " Quickly time out on keycodes, but never time out on mappings
@@ -193,10 +163,8 @@ set notimeout ttimeout ttimeoutlen=10
 
 let g:bufferline_rotate=1
 
-" Change leader key
 let mapleader=","
 
-" buffer stuff
 map <C-Right> :bnext<CR>
 map <C-Left> :bprevious<CR>
 map <C-k> :bnext<CR>
@@ -205,40 +173,25 @@ map <leader>d :Bdelete this<CR>
 
 map <C-P> :Files<CR>
 
-"map <C-O> :NERDTree<CR>
-"let NERDTreeQuitOnOpen=1
 map <C-O> :RangerCurrentDirectory<CR>
 nmap <Space> :
 
 nnoremap gV `[v`]
 
-" ARM assembly syntax
 let asmsyntax='armasm'
 let filetype_inc='armasm'
 
-" gundo tree
 nnoremap <F2> :GundoToggle<CR>
 
-" make and associated convenience
 nnoremap <leader>m :make<CR>
 nnoremap <C-Up> :cn<CR>
 nnoremap <C-Down> :cp<CR>
 
-" Search as characters are entered
 set incsearch
-" Highlight matches
 set hlsearch
 
-" Save
 nnoremap <leader>w :w<CR>
 
-" Save session
-nnoremap <leader>s :mksession<CR>
-
-" Git commit/push
-nnoremap <leader>r :! git commit -am "kek" && git push<CR>
-
-" Tab things
 nnoremap <Tab> >>
 nnoremap <S-Tab> <<
 
@@ -395,11 +348,18 @@ function! AgdaFiletype()
   call cornelis#bind_input("[.]", "⊡")
   call cornelis#bind_input("o/", "∅")
   call cornelis#bind_input("rtri", "▷")
+  call cornelis#bind_input("darrow", "↓")
   call cornelis#bind_input("Darrow", "⇓")
+  call cornelis#bind_input("uarrow", "↑")
+  call cornelis#bind_input("Uarrow", "⇑")
+  call cornelis#bind_input("lttri", "⋖")
+  call cornelis#bind_input("++", "⧺")
+  call cornelis#bind_input("~>", "⇝")
 endfunction
 
 let g:coqtail_auto_set_proof_diffs = 'on'
 
+luafile ~/.vim/config.lua
 luafile ~/.vim/lsp_config.lua
 sign define LspDiagnosticsSignError text=X
 sign define LspDiagnosticsWarning text=!
