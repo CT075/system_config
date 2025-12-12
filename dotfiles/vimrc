@@ -29,6 +29,8 @@ set hidden
 
 let g:cornelis_agda_prefix = "\\"
 
+let g:ranger_replace_netrw = 1
+
 filetype off " required for Vundle plugin manager
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
@@ -101,15 +103,15 @@ Plugin 'junegunn/fzf.vim'
 
 Plugin 'ocaml/vim-ocaml'
 
+Plugin 'tpope/vim-abolish'
+
 if has("nvim")
   Plugin 'neovim/nvim-lspconfig'
-
-  Plugin 'lifepillar/vim-mucomplete'
 
   Plugin 'kana/vim-textobj-user'
   Plugin 'neovimhaskell/nvim-hs.vim'
   Plugin 'liuchengxu/vim-which-key'
-  Plugin 'isovector/cornelis', { 'do': 'stack build' }
+  Plugin 'agda/cornelis', { 'do': 'stack build' }
 
   Plugin 'nvim-lua/plenary.nvim'
   Plugin 'scalameta/nvim-metals'
@@ -121,6 +123,9 @@ if has("nvim")
 
   Plugin 'whonore/Coqtail'
   Plugin 'NLKNguyen/papercolor-theme'
+
+  Plugin 'kaarmu/typst.vim'
+  Plugin 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 endif
 
 call vundle#end()
@@ -360,9 +365,23 @@ function! AgdaFiletype()
   call cornelis#bind_input("ell", "ℓ")
   call cornelis#bind_input("Z", "ℤ")
   call cornelis#bind_input("lambda", "λ")
-  call cornelis#bind_input("vdash", "⊢")
   call cornelis#bind_input("mapsto", "↦")
+  call cornelis#bind_input("[]", "☐")
   call cornelis#bind_input("[.]", "⊡")
+  call cornelis#bind_input("ltri", "◁")
+  call cornelis#bind_input("rtri", "▷")
+  call cornelis#bind_input("o/", "∅")
+  call cornelis#bind_input(">->", "↣")
+  call cornelis#bind_input("darrow", "↓")
+  call cornelis#bind_input("Darrow", "⇓")
+  call cornelis#bind_input("uarrow", "↑")
+  call cornelis#bind_input("Uarrow", "⇑")
+  call cornelis#bind_input("~>", "⇝")
+  call cornelis#bind_input("lttri", "⋖")
+  call cornelis#bind_input("nil", "∅")
+  call cornelis#bind_input("++" , "⧺")
+
+  call cornelis#unbind_input("len")
 endfunction
 
 let g:coqtail_auto_set_proof_diffs = 'on'
