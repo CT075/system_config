@@ -1,0 +1,17 @@
+[user]
+name = "Cameron Wong"
+email = "cam@camdar.io"
+
+[ui]
+diff-editor = "vimdirdiff"
+
+[signing]
+behavior = "own"
+backend = "gpg"
+
+[git]
+sign-on-push = true
+
+[aliases]
+tug = ["bookmark", "move", "--from", "heads(::@- & bookmarks())", "--to", "@"]
+tug- = ["bookmark", "move", "--from", "heads(::@- & bookmarks())", "--to", "@-"]

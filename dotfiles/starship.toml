@@ -1,0 +1,56 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline = false
+
+format = """
+$username\
+$hostname\
+$directory\
+${custom.jj_change}\
+${custom.git_branch}\
+${custom.git_commit}\
+${custom.git_state}\
+$git_status\
+$python\
+$scala\
+$ocaml\
+$shell\
+$fill\
+$cmd_duration
+$character
+"""
+
+[directory]
+truncation_symbol = ".../"
+fish_style_pwd_dir_length	= 1
+
+[username]
+show_always = true
+format = '[$user]($style)@'
+
+[hostname]
+format = '[$ssh_symbol$hostname]($style)|'
+ssh_only = false
+
+[git_commit]
+disabled = true
+
+[custom.git_commit]
+when = "! jj --ignore-working-copy root"
+command = "starship module git_commit"
+style = ""
+description = "Only show git_commit if we're not in a jj repo"
+
+[git_branch]
+disabled = true
+
+[custom.git_branch]
+when = "! jj --ignore-working-copy root"
+command = "starship module git_branch"
+description = "Only show git_branch if we're not in a jj repo"
+style = ""
+
+[custom.jj_change]
+when = "jj --ignore-working-copy root"
+command = "jj log --revisions @ --no-graph --ignore-working-copy --color always --limit 1 --template 'change_id.shortest(8)'"
+format = 'on [$output]($style) '
