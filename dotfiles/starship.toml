@@ -12,8 +12,6 @@ ${custom.git_commit}\
 ${custom.git_state}\
 $git_status\
 $python\
-$scala\
-$ocaml\
 $shell\
 $fill\
 $cmd_duration
@@ -31,6 +29,11 @@ format = '[$user]($style)@'
 [hostname]
 format = '[$ssh_symbol$hostname]($style)|'
 ssh_only = false
+
+[python]
+symbol = 'py '
+detect_extensions = []
+pyenv_version_name = true
 
 [git_commit]
 disabled = true
@@ -52,5 +55,8 @@ style = ""
 
 [custom.jj_change]
 when = "jj --ignore-working-copy root"
-command = "jj log --revisions @ --no-graph --ignore-working-copy --color always --limit 1 --template 'change_id.shortest(8)'"
+command = """
+  jj log --revisions @ --no-graph --ignore-working-copy --color always --limit 1 \
+    --template 'change_id.shortest(8)'
+"""
 format = 'on [$output]($style) '
