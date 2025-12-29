@@ -35,7 +35,7 @@ input type:keyboard {
 
 exec swayidle -w timeout 600 '~/.config/sway/lock' before-sleep 'block'
 
-output * bg '/home/cam/System/wallpaper.png' center #000000
+output * bg '/home/cam/System/wallpaper.png' stretch
 
 exec systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK
 exec hash dbus-update-activation-environment 2>/dev/null && dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK
