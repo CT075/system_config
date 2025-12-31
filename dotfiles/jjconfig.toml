@@ -6,7 +6,7 @@ email = "cam@camdar.io"
 conflict-marker-style = "git"
 
 [signing]
-behavior = "own"
+behavior = "drop"
 backend = "gpg"
 
 [git]
