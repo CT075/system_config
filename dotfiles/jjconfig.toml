@@ -3,10 +3,10 @@ name = "Cameron Wong"
 email = "cam@camdar.io"
 
 [ui]
-diff-editor = "vimdirdiff"
+conflict-marker-style = "git"
 
 [signing]
-behavior = "own"
+behavior = "drop"
 backend = "gpg"
 
 [git]

@@ -249,7 +249,7 @@ load_plugins {
 // Choose the theme that is specified in the themes section.
 // Default: default
 // 
-theme "solarized-dark"
+theme "nightfox"
  
 // Choose the base input mode of zellij.
 // Default: normal
@@ -287,7 +287,7 @@ default_layout "compact"
 //   - true (default)
 //   - false
 // 
-// mouse_mode false
+//mouse_mode false
  
 // Toggle having pane frames around the panes
 // Options:
@@ -363,7 +363,7 @@ default_layout "compact"
 // if it is already running or creates it otherwise.
 // Default: false
 // 
-// attach_to_session true
+attach_to_session true
  
 // Toggle between having Zellij lay out panes according to a predefined set of layouts whenever possible
 // Options:
@@ -429,4 +429,6 @@ show_startup_tips false
 // Whether to show release notes on first version run
 // Default: true
 // 
-// show_release_notes false
+show_release_notes false
+
+advanced_mouse_actions false
