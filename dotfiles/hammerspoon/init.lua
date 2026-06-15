@@ -25,25 +25,8 @@ hs.hotkey.bind(super, "p", function()
     alertf("ping")
 end)
 
--- disable cmd-n for all n from 1-9 in other apps
-
-for i=1,9 do
-    hs.hotkey.bind(cmd, string.format("%d", i), function() end)
-end
-
--- idiosyncratic numbering is loosely due to which desktop I tend to put these
--- windows on when at home
-
-hs.hotkey.bind(cmd, "1", function()
-    launchOrFocus("iTerm")
-end)
-
-hs.hotkey.bind(cmd, "7", function()
-    launchOrFocus("Slack")
-end)
-
-hs.hotkey.bind(cmd, "9", function()
-    launchOrFocus("Google Chrome")
+hs.hotkey.bind(cmd, "p", function()
+    hs.osascript.applescript('tell application "System Events" to key code 49 using {command down}')
 end)
 
 -- disable a bunch of hotkeys that keep messing me up
