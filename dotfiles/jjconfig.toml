@@ -11,6 +11,7 @@ backend = "gpg"
 
 [git]
 sign-on-push = true
+push-new-bookmarks = true
 
 [revset-aliases]
 'closest_bookmark(to)' = 'heads(::to & bookmarks())'
@@ -18,3 +19,6 @@ sign-on-push = true
 [aliases]
 tug = ["bookmark", "move", "--from", "closest_bookmark(@-)", "--to", "@"]
 tug- = ["bookmark", "move", "--from", "closest_bookmark(@-)", "--to", "@-"]
+
+[remotes.origin]
+auto-track-bookmarks = "*"

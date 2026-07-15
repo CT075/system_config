@@ -9,7 +9,6 @@ let g:airline_powerline_fonts = 1
 
 let maplocalleader = ",,"
 
-" Ensure that we are in modern vim mode, not backwards-compatible vi mode
 set nocompatible
 set backspace=indent,eol,start
 if has("nvim")
@@ -85,6 +84,7 @@ endif
 
 Plug 'psf/black'
 
+Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
 
 Plug 'ocaml/vim-ocaml'
@@ -101,7 +101,7 @@ if has("nvim")
   Plug 'kana/vim-textobj-user'
   Plug 'neovimhaskell/nvim-hs.vim'
   Plug 'liuchengxu/vim-which-key'
-  Plug 'isovector/cornelis', { 'do': 'stack build' }
+  Plug 'agda/cornelis', { 'do': 'stack build', 'tag':'nvim-0.12-compat' }
 
   Plug 'nvim-lua/plenary.nvim'
   Plug 'scalameta/nvim-metals'
@@ -118,6 +118,7 @@ if has("nvim")
   Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate', 'branch': 'main'}
 
   Plug 'Julian/lean.nvim'
+  Plug 'ThePrimeagen/harpoon', {'branch': 'harpoon2'}
 endif
 
 Plug 'dpc/vim-armasm'
@@ -166,11 +167,13 @@ let g:bufferline_rotate=1
 
 let mapleader=","
 
-map <C-Right> :bnext<CR>
-map <C-Left> :bprevious<CR>
-map <C-k> :bnext<CR>
-map <C-j> :bprevious<CR>
-map <leader>d :Bdelete this<CR>
+if !has("nvim")
+  map <C-Right> :bnext<CR>
+  map <C-Left> :bprevious<CR>
+  map <C-k> :bnext<CR>
+  map <C-j> :bprevious<CR>
+  map <leader>d :Bdelete this<CR>
+endif
 
 map <C-P> :Files<CR>
 
