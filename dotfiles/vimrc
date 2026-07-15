@@ -132,8 +132,6 @@ filetype on
 filetype indent on
 filetype plugin on
 
-let g:airline#extensions#tabline#enabled = 1
-
 set ruler
 set number
 
