@@ -24,8 +24,10 @@ require'lualine'.setup {
 harpoon = require'harpoon'
 harpoon:setup({settings={save_on_toggle = true}})
 
-vim.keymap.set("n", "<leader>a", function() harpoon:list():add() end,
-  {desc = "Harpoon add file"})
+vim.keymap.set("n", "<leader>a", function()
+    harpoon:list():add()
+    vim.cmd('redrawtabline')
+  end, {desc = "Harpoon add file"})
 vim.keymap.set("n", "<C-e>", function()
     harpoon.ui:toggle_quick_menu(harpoon:list())
   end, {desc = "Harpoon quick menu"})
@@ -33,6 +35,11 @@ vim.keymap.set("n", "<leader>1", function() harpoon:list():select(1) end)
 vim.keymap.set("n", "<leader>2", function() harpoon:list():select(2) end)
 vim.keymap.set("n", "<leader>3", function() harpoon:list():select(3) end)
 vim.keymap.set("n", "<leader>4", function() harpoon:list():select(4) end)
+vim.keymap.set("n", "<leader>5", function() harpoon:list():select(5) end)
+vim.keymap.set("n", "<leader>6", function() harpoon:list():select(6) end)
+vim.keymap.set("n", "<leader>7", function() harpoon:list():select(7) end)
+vim.keymap.set("n", "<leader>8", function() harpoon:list():select(8) end)
+vim.keymap.set("n", "<leader>9", function() harpoon:list():select(9) end)
 vim.keymap.set("n", "<C-j>", function() harpoon:list():prev() end)
 vim.keymap.set("n", "<C-k>", function() harpoon:list():next() end)
 
@@ -184,12 +191,3 @@ vim.o.tabline = "%!v:lua.HarpoonTabline()"
 vim.keymap.set("n", "<leader>d", function()
   harpoon_delete(current_value(harpoon:list()))
 end, { desc = "Harpoon: delete current file, go to next" })
-
-vim.api.nvim_create_autocmd("BufWinEnter", {
-  group = vim.api.nvim_create_augroup("HarpoonAutoAdd", { clear = true }),
-  callback = function(args)
-    if vim.bo[args.buf].buftype ~= "" then return end
-    if vim.api.nvim_buf_get_name(args.buf) == "" then return end
-    harpoon:list():add()
-  end,
-})
