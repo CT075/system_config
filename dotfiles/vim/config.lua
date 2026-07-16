@@ -314,8 +314,8 @@ vim.o.tabline = "%!v:lua.HarpoonTabline()"
 
 vim.keymap.set("n",  "<leader>d", close_current, { desc = "Close current buffer / tab" })
 
-vim.keymap.set("n", "<C-j>", function() cycle(1) end,  { desc = "Harpoon: next tab" })
-vim.keymap.set("n", "<C-k>", function() cycle(-1) end, { desc = "Harpoon: prev tab" })
+vim.keymap.set("n", "<C-k>", function() cycle(1) end,  { desc = "Harpoon: next tab" })
+vim.keymap.set("n", "<C-j>", function() cycle(-1) end, { desc = "Harpoon: prev tab" })
 
 local grp = vim.api.nvim_create_augroup("HarpoonTabline", { clear = true })
 
