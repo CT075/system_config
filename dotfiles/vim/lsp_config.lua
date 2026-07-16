@@ -8,7 +8,7 @@ opts = {noremap=true, silent=true}
 vim.api.nvim_set_keymap('n', '<localleader>w', '<cmd>ToggleWhitespace<CR><cmd>ToggleWhitespace<CR>', opts)
 
 vim.api.nvim_set_keymap('n', '<leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', opts)
-vim.api.nvim_set_keymap('n', '\\<CR>', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
+vim.api.nvim_set_keymap('n', '\\<CR>', '<cmd>lua vim.diagnostic.jump({ count = 1, float = true })<CR>', opts)
 
 local on_attach = function(client, bufnr)
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
@@ -25,9 +25,7 @@ vim.api.nvim_create_autocmd("FileType", {
     metals_config = metals.bare_config()
     vim.api.nvim_set_keymap('n', '<localleader>t', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
     vim.api.nvim_set_keymap('n', 'J', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
-    metals_config.settings = {
-      metalsBinaryPath = '/home/cam/.local/share/coursier/bin/metals',
-    }
+    metals_config.settings = {}
     vim.lsp.handlers["window/showMessage"] = function(_, result, ctx)
       local client = vim.lsp.get_client_by_id(ctx.client_id)
       local lvl = ({ "ERROR", "WARN", "INFO", "LOG" })[result.type]
@@ -72,4 +70,8 @@ vim.lsp.config('pyright', {on_attach=on_attach})
 
 vim.lsp.enable('hls')
 
-vim.g.lean_config = { mappings = true, graphics={enabled=false} }
+vim.g.lean_config = {
+  mappings = true,
+  graphics = { enabled = false },
+  infoview = { height = 1/5 }
+}
