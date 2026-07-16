@@ -169,10 +169,16 @@ bindsym $mod+Shift+y restart
 #bindsym $mod+Shift+e move workspace to output HDMI-A-1
 #bindsym $mod+Shift+r move workspace to output HDMI-A-1
 
-bindsym $mod+w focus output DP-2
+output HDMI-A-1 resolution 1920x1080
+output HDMI-A-1 position 0 0
+output eDP-1 position 1920 600
+
+#bindsym $mod+w focus output DP-2
+bindsym $mod+w focus output HDMI-A-1
 bindsym $mod+e focus output HDMI-A-1
 bindsym $mod+r focus output eDP-1
-bindsym $mod+Shift+w move workspace to output DP-2
+#bindsym $mod+Shift+w move workspace to output DP-2
+bindsym $mod+Shift+w move workspace to output HDMI-A-1
 bindsym $mod+Shift+e move workspace to output HDMI-A-1
 bindsym $mod+Shift+r move workspace to output eDP-1
 

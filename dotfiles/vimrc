@@ -64,6 +64,7 @@ endif
 Plug 'francoiscabrol/ranger.vim'
 
 Plug 'Asheq/close-buffers.vim'
+Plug 'nvim-mini/mini.sessions'
 
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'nvim-tree/nvim-web-devicons'
@@ -361,6 +362,7 @@ function! AgdaFiletype()
   call cornelis#bind_input("~>", "⇝")
   call cornelis#bind_input("lttri", "⋖")
   call cornelis#bind_input("++" , "⧺")
+  call cornelis#bind_input("le/", "≰")
 
   call cornelis#unbind_input("len")
 endfunction

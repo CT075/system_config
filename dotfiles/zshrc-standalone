@@ -18,12 +18,14 @@ export DEVKITARM=${DEVKITPRO}/devkitARM
 export DEVKITPPC=${DEVKITPRO}/devkitPPC
 
 export PATH=$PATH:${DEVKITPRO}/devkitARM/bin
-export FZF_DEFAULT_COMMAND='rg --files --hidden'
-
 export PATH=$PATH:$HOME/.idris2/bin
 export PATH=$PATH:$HOME/.pack/bin
 export PATH=$PATH:$HOME/go/bin
 export PATH=$PATH:$HOME/.elan/bin
+export PATH=$PATH:/home/cam/.local/share/coursier/bin
+export PATH=$PATH:/home/cam/.local/share/pandoc/bin
+
+export FZF_DEFAULT_COMMAND='rg --files --hidden'
 
 autoload -Uz compinit
 compinit
