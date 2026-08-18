@@ -76,3 +76,11 @@ vim.g.lean_config = {
   graphics = { enabled = false },
   infoview = { height = 1/5 }
 }
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "lean" },
+  callback = function()
+    vim.api.nvim_set_keymap('n', '<localleader>l', '<cmd>:LeanRestartFile<CR>', opts)
+  end,
+  group = lean_bindings,
+})
