@@ -1,6 +1,6 @@
 ---
 name: codelikeme
-description: Specifies Cam's general coding style and conventions.
+description: Specifies Cam's general coding style and conventions. Invoke with /codelikeme when writing code.
 ---
 
 # Code like me
