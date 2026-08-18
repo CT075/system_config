@@ -69,6 +69,7 @@ vim.lsp.config('hls', {
 vim.lsp.config('pyright', {on_attach=on_attach})
 
 vim.lsp.enable('hls')
+vim.lsp.enable('pyright')
 
 vim.g.lean_config = {
   mappings = true,

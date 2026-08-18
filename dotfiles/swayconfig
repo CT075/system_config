@@ -169,20 +169,19 @@ bindsym $mod+Shift+y restart
 #bindsym $mod+Shift+e move workspace to output HDMI-A-1
 #bindsym $mod+Shift+r move workspace to output HDMI-A-1
 
+output eDP-1 position 0 0
 output HDMI-A-1 resolution 1920x1080
-output HDMI-A-1 position 0 0
-output eDP-1 position 1920 600
+output HDMI-A-1 position 1440 300
 
-#bindsym $mod+w focus output DP-2
-bindsym $mod+w focus output HDMI-A-1
-bindsym $mod+e focus output HDMI-A-1
-bindsym $mod+r focus output eDP-1
-#bindsym $mod+Shift+w move workspace to output DP-2
-bindsym $mod+Shift+w move workspace to output HDMI-A-1
-bindsym $mod+Shift+e move workspace to output HDMI-A-1
-bindsym $mod+Shift+r move workspace to output eDP-1
+bindsym $mod+w focus output eDP-1
+bindsym $mod+e focus output eDP-1
+#bindsym $mod+w focus output HDMI-A-1
+#bindsym $mod+e focus output HDMI-A-1
+bindsym $mod+r focus output HDMI-A-1
+bindsym $mod+Shift+w move workspace to output eDP-1
+#bindsym $mod+Shift+w move workspace to output HDMI-A-1
+bindsym $mod+Shift+r move workspace to output HDMI-A-1
 
-for_window [app_id="flameshot"] border pixel 0, floating enable, fullscreen disable, move absolute position 0 0
 bindsym $mod+s exec XDG_CURRENT_DESKTOP=sway flameshot gui --raw | wl-copy
 #bindsym $mod+Shift+s exec flameshot gui
 bindsym $mod+Shift+s exec grim -g "$(slurp -d)" - | wl-copy -t image/png
@@ -192,7 +191,7 @@ bindsym $mod+x exec "~/.config/sway/lock"
 bindsym $mod+Shift+x exec "swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'"
 
 mode "startapp" {
-        bindsym $mod+c exec "i3-msg mode default; brave-browser"
+        bindsym $mod+c exec "i3-msg mode default; vivaldi"
         bindsym $mod+f exec "i3-msg mode default; nautilus"
 
         bindsym Return mode "default"
@@ -206,5 +205,8 @@ bindsym $mod+Shift+p mode startapp
 bar {
         status_command i3status
 }
+
+exec_always gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark'
+exec_always gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
 exec_always "systemctl --user restart kanshi.service"
