@@ -25,7 +25,9 @@ Keep a minimalist style, not everything needs to be commented. Data constructors
 
 Comments go *over* the code being described,
 
-Avoid block comments where possible, unless writing comments to be consumed by an automatic documentation producer (e.g. rustdoc comments). That is, prefer
+Documentation comments are only for code that is explicitly user-facing or a published library API, like a rustdoc comment on a crate's public surface. Internal code gets plain line comments, whatever the language spells its doc syntax as. A doc comment on a helper nobody outside the module will ever call is noise with extra punctuation on it.
+
+Avoid block comments where possible. That is, prefer
 
 ```
 // This is a multi-line comment that
@@ -40,6 +42,15 @@ over
  * is inside a block comment.
  */
 ```
+
+Don't rule sections off with horizontal lines:
+
+```
+--------------------------------------------------------------------------------
+-- Encoding
+```
+
+The one thing that earns a rule like that is flagging a block fragile or hairy enough that nobody should touch it casually.
 
 ## Language-specific
 

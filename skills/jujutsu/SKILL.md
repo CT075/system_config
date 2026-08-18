@@ -67,18 +67,36 @@ Use revsets with `-r` flags: `jj log -r 'trunk()..@'`
 
 ## Essential Workflow
 
-### Starting Work: Describe First, Then Code
+### Starting Work: New Change First, Describe, Then Code
 
-**Always create your commit message before writing code:**
+Before touching anything, look at what `@` actually is:
 
-Validate that you're on a blank revision with `jj st`. If you are not, you should type:
+```bash
+jj st
+```
+
+**If `@` is blank - no changes in it and no description - work in it.** Running
+`jj new` here just leaves an empty, undescribed commit sitting in the log, and
+sweeping those up afterwards is busywork nobody asked for.
+
+**If `@` has a description but no content, stop and ask the user what to do.**
+Somebody described a change and then never wrote it, which usually means a plan
+got dropped partway or a session ended mid-thought. Maybe that work is what
+you've just been asked to do, maybe the change should be abandoned. Guessing is
+how the forgotten plan stays forgotten, so ask.
+
+**Otherwise, run `jj new` first.** Default to a new change even when the work is
+conceptually related to the one you're on. Related work is still separate work
+until you decide otherwise, and the two ways of guessing wrong don't cost the
+same: two changes that turn out to be one unit are a single `jj squash` away,
+while work folded into a change that was already finished has to be picked back
+apart by hand. This applies to any new task, not just the first one of a
+session.
 
 ```bash
 jj new
-```
 
-```bash
-# First, describe what you intend to do
+# Describe what you intend to do, before writing any of it
 jj desc -m "Add user authentication to login endpoint"
 
 # Then make your changes - they automatically become part of this commit
@@ -86,6 +104,14 @@ jj desc -m "Add user authentication to login endpoint"
 
 # Check status
 jj st
+```
+
+If the work turns out to belong with its parent after all, fold it in at the
+end:
+
+```bash
+jj squash                      # move @ into its parent
+jj desc -m "combined message"  # one message for the combined change
 ```
 
 ### Creating Atomic Commits
@@ -166,6 +192,10 @@ Move changes from current commit into its parent:
 # Squash all changes into parent
 jj squash
 ```
+
+This is the intended cleanup path for the new-change default above: make the
+separate change, and if it reads as one logical unit with its parent once
+written, squash it in and re-describe.
 
 **Note**: `jj squash -i` opens an interactive UI and will hang in agent environments. Avoid it.
 
@@ -409,7 +439,7 @@ jj st
 | View status | `jj st` |
 | View log | `jj --no-pager log` |
 | View diff | `jj --no-pager diff --git` |
-| New commit | `jj new -m "message"` (use `jj st` first; skip if `@` is empty) |
+| New commit | `jj new -m "message"` (default for new work; skip if `@` is blank; ask first if `@` is described but empty) |
 | Edit commit | `jj edit <id>` |
 | Squash to parent | `jj squash` |
 | Auto-distribute | `jj absorb` |
@@ -427,12 +457,13 @@ jj st
 
 ## Best Practices Summary
 
-1. **Describe first**: Set the commit message before coding
-2. **Follow the log**: Match the repo's existing message convention before applying any default
-3. **One change per commit**: Keep commits atomic and focused
-4. **Use change IDs**: They're stable across rewrites
-5. **Refine commits**: Leverage mutability for clean history
-6. **Embrace the workflow**: No staging area, no stashing - just commits
+1. **New change by default**: Start new work in a new change, even related work; squash later if it turns out to be one unit. Two exceptions: a blank `@` (no content, no description) is just used as-is, and a described-but-empty `@` means asking the user first
+2. **Describe first**: Set the commit message before coding
+3. **Follow the log**: Match the repo's existing message convention before applying any default
+4. **One change per commit**: Keep commits atomic and focused
+5. **Use change IDs**: They're stable across rewrites
+6. **Refine commits**: Leverage mutability for clean history
+7. **Embrace the workflow**: No staging area, no stashing - just commits
 
 ## Self-improvement
 
