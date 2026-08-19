@@ -1,0 +1,29 @@
+{
+  "model": "opus",
+  "enabledPlugins": {
+    "i-have-adhd@i-have-adhd": true
+  },
+  "extraKnownMarketplaces": {
+    "i-have-adhd": {
+      "source": {
+        "source": "github",
+        "repo": "ayghri/i-have-adhd"
+      }
+    }
+  },
+  "theme": "dark",
+  "editorMode": "vim",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/cameron/system_config/agents/hooks/protect-writelikeme-skill.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
