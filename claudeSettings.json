@@ -13,7 +13,7 @@
   },
   "theme": "dark",
   "editorMode": "vim",
-  "outputStyle": "writelikeme"
+  "outputStyle": "writelikeme",
   "hooks": {
     "PreToolUse": [
       {
