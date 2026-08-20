@@ -7,7 +7,7 @@ description: Cam's writing voice, the default for all prose rather than a specia
 
 The rules live in `[here]/../../output-styles/writelikeme.md`, also reachable at
 `~/.claude/output-styles/writelikeme.md`. Read it now, from the
-`# Writing like me, not like an assistant` heading through the end of the file. The lines
+`# Writing like me` heading through the end of the file. The lines
 above that heading are output-style framing for the main conversation and don't apply to
 you if you got here by invoking this skill.
 

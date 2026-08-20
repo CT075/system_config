@@ -13,18 +13,5 @@
   },
   "theme": "dark",
   "editorMode": "vim",
-  "outputStyle": "writelikeme",
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/cameron/system_config/agents/hooks/protect-writelikeme-skill.sh"
-          }
-        ]
-      }
-    ]
-  }
+  "outputStyle": "writelikeme"
 }
