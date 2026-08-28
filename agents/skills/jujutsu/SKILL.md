@@ -197,6 +197,17 @@ This is the intended cleanup path for the new-change default above: make the
 separate change, and if it reads as one logical unit with its parent once
 written, squash it in and re-describe.
 
+To move only some paths, and into a commit that isn't the parent, name both ends:
+
+```bash
+# Move src/main.rs's changes out of @ and into an earlier commit
+jj squash --from @ --into <change-id> src/main.rs
+```
+
+Descendants rebase automatically. Prefer this over `jj absorb` when a hunk
+belongs to one commit as a unit: absorb attributes line by line, so a hunk whose
+surrounding lines were last touched by an unrelated commit gets torn in half.
+
 **Note**: `jj squash -i` opens an interactive UI and will hang in agent environments. Avoid it.
 
 ### Splitting Commits
