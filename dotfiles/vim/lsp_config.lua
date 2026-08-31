@@ -1,7 +1,7 @@
 require("mason").setup()
 require("mason-lspconfig").setup()
 
-vim.diagnostic.config({ virtual_text = true })
+vim.diagnostic.config({ virtual_text = true, jump = {float = true} })
 
 opts = {noremap=true, silent=true}
 

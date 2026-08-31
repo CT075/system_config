@@ -27,12 +27,15 @@ export PATH=$PATH:/home/cam/.local/share/pandoc/bin
 
 export FZF_DEFAULT_COMMAND='rg --files --hidden'
 
-autoload -Uz compinit
-compinit
-zstyle ':completion:*' matcher-list 'm:{[:lower:]}={[:upper:]}' 'm:{[:upper:]}={[:lower:]}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 alias in='task add +in'
+alias scala-run='scala-cli run --server=false'
 
 [ "$TERM" = "alacritty" ] && alias ssh='TERM=xterm-256color ssh'
 
 source ~/.zprofile
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{[:lower:]}={[:upper:]}' 'm:{[:upper:]}={[:lower:]}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+source ~/.local/share/copper/cu-setup
+
 eval "$(starship init zsh)"

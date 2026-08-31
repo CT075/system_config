@@ -7,7 +7,7 @@ vim.api.nvim_create_autocmd('FileType', {
 
 require'lualine'.setup {
   options = {
-    theme = 'molokai',
+    theme = 'codedark',
     component_separators = '',
     icons_enabled = false
   },

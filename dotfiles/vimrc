@@ -17,10 +17,6 @@ endif
 
 set clipboard=unnamedplus
 
-if has("nvim")
-  let g:python3_host_prog = '/home/cam/neovim3/bin/python'
-endif
-
 set nofoldenable
 let g:vim_markdown_folding_disabled = 1
 
@@ -66,8 +62,10 @@ Plug 'francoiscabrol/ranger.vim'
 Plug 'Asheq/close-buffers.vim'
 Plug 'nvim-mini/mini.sessions'
 
-Plug 'nvim-lualine/lualine.nvim'
-Plug 'nvim-tree/nvim-web-devicons'
+if has("nvim")
+  Plug 'nvim-lualine/lualine.nvim'
+  Plug 'nvim-tree/nvim-web-devicons'
+endif
 Plug 'akinsho/bufferline.nvim'
 
 Plug 'christophermca/meta5'
@@ -83,7 +81,7 @@ else
   Plug 'Chiel92/vim-autoformat'
 endif
 
-Plug 'psf/black'
+" Plug 'psf/black'
 
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
@@ -112,7 +110,6 @@ if has("nvim")
   Plug 'MunifTanjim/nui.nvim'
   Plug 'ShinKage/idris2-nvim'
 
-  Plug 'whonore/Coqtail'
   Plug 'NLKNguyen/papercolor-theme'
 
   Plug 'kaarmu/typst.vim'
@@ -214,7 +211,7 @@ set laststatus=2
 
 set mouse=a
 
-let g:airline_theme='luna'
+let g:airline_theme='codedark'
 let g:bufferline_echo=0
 
 " this doesn't actually work either
@@ -301,6 +298,10 @@ let g:neoformat_c_clangformat =
 \ }
 
 let g:neoformat_enabled_c = ['clangformat']
+
+let g:neoformat_enabled_scala = ['scalafmt']
+
+let g:neoformat_enabled_python = ['black']
 
 function! CornelisLoadWrapper()
   if exists(":CornelisLoad") ==# 2
