@@ -22,9 +22,103 @@ require'lualine'.setup {
 }
 
 harpoon = require'harpoon'
-harpoon:setup({settings={save_on_toggle = true}})
+
+-- One list per repo. Outside a repo there is nothing stable to key on, and a
+-- persistent ~ list is mostly clutter, so those sessions get a scratch list that
+-- never reaches disk. .jj is here for the non-colocated case; a jj repo that was
+-- cloned with git alongside it matches on .git anyway.
+local project_root = vim.fs.root(vim.uv.cwd(), { '.git', '.jj' })
+local harpoon_root = project_root or vim.uv.cwd()
+local SCRATCH_KEY = 'harpoon://scratch'
+
+-- Entries are stored as absolute paths rather than relative to the root.
+-- harpoon's own select() resolves a stored value through bufadd(), which is
+-- cwd-relative, so a root-relative value breaks the moment nvim starts in a
+-- subdirectory of the project. Path:make_relative hands back the path untouched
+-- when it isn't under the given root, so naming a root nothing can live under
+-- turns harpoon's normalization step into a no-op.
+local NO_ROOT = '\0'
+
+local function to_abs(value)
+  if value:sub(1, 1) == '/' then return value end
+  return harpoon_root .. '/' .. value
+end
+
+local function to_display(value)
+  local prefix = harpoon_root .. '/'
+  if value:sub(1, #prefix) == prefix then return value:sub(#prefix + 1) end
+  return vim.fn.fnamemodify(value, ':~')
+end
+
+harpoon:setup {
+  settings = {
+    save_on_toggle = true,
+    key = function() return project_root or SCRATCH_KEY end,
+  },
+  default = {
+    get_root_dir = function() return NO_ROOT end,
+    display = function(item) return to_display(item.value) end,
+    -- Lines typed into the quick menu come back as displayed text, which reads
+    -- as root-relative and has to go the other way.
+    create_list_item = function(_, name)
+      name = name and to_abs(name)
+        or vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf())
+      local pos = { 1, 0 }
+      if vim.fn.bufnr(name, false) ~= -1 then
+        pos = vim.api.nvim_win_get_cursor(0)
+      end
+      return { value = name, context = { row = pos[1], col = pos[2] } }
+    end,
+  },
+}
+
+-- The scratch list is read once at setup and never written back.
+if not project_root then
+  harpoon.data._data = {}
+  harpoon.sync = function() end
+end
+
+-- Only real file buffers can be harpooned. Adding a [No Name] scratch buffer
+-- gives an item whose value is "", which survives to disk and comes back as a
+-- phantom tab that nothing can focus.
+local function harpoonable(buf)
+  buf = buf or vim.api.nvim_get_current_buf()
+  return vim.bo[buf].buftype == "" and vim.api.nvim_buf_get_name(buf) ~= ""
+end
+
+-- Dropped on load: blank entries persisted by older versions of this config, and
+-- entries whose file is gone. Values written before the list was keyed on the
+-- repo root are relative to whatever cwd added them, so they get resolved on the
+-- way past.
+harpoon:extend({
+  LIST_CREATED = function(list)
+    local items, changed = {}, false
+    for i = 1, list._length do
+      local it = list.items[i]
+      local value = it and it.value
+      if not value or value == "" then
+        changed = true
+      elseif not vim.uv.fs_stat(to_abs(value)) then
+        changed = true
+      else
+        if to_abs(value) ~= value then
+          it.value = to_abs(value)
+          changed = true
+        end
+        items[#items + 1] = it
+      end
+    end
+    if not changed then return end
+    list.items, list._length = items, #items
+    vim.schedule(function() harpoon:sync() end)
+  end,
+})
 
 vim.keymap.set("n", "<leader>a", function()
+    if not harpoonable() then
+      vim.notify("Harpoon: nothing to add, this buffer has no file", vim.log.levels.WARN)
+      return
+    end
     harpoon:list():add()
     vim.cmd('redrawtabline')
   end, {desc = "Harpoon add file"})

@@ -1,5 +1,5 @@
 {
-  "model": "opus",
+  "model": "opus[1m]",
   "enabledPlugins": {
     "i-have-adhd@i-have-adhd": true
   },
@@ -11,7 +11,7 @@
       }
     }
   },
+  "outputStyle": "writelikeme",
   "theme": "dark",
-  "editorMode": "vim",
-  "outputStyle": "writelikeme"
+  "editorMode": "vim"
 }

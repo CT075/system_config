@@ -1,0 +1,9 @@
+# sway config loader.
+#
+# This file holds nothing but includes. Everything real lives in config.d/,
+# which sway reads in filename order, so the numeric prefixes are the load
+# order and variables defined in 00-variables.conf are visible to the rest.
+
+include /etc/sway/config.d/10-systemd-session.conf
+
+include ~/.config/sway/config.d/*.conf
