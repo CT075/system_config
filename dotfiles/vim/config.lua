@@ -3,7 +3,7 @@ treesitter = require('nvim-treesitter')
 require'nvim-treesitter'.install { 'latex', 'rust', 'haskell' }
 
 vim.api.nvim_create_autocmd('FileType', {
-  pattern = { 'latex', 'rust', 'haskell' },
+  pattern = { 'latex', 'rust' },
   callback = function() vim.treesitter.start() end,
 })
 
