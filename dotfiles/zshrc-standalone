@@ -28,6 +28,7 @@ export PATH=$PATH:$HOME/go/bin
 export PATH=$PATH:$HOME/.elan/bin
 export PATH=$PATH:$HOME/.cargo/bin
 export PATH=$PATH:$HOME/.local/share/coursier/bin
+export PATH=$PATH:/home/cam/.local/share/pandoc/bin
 
 zstyle ':completion:*' matcher-list 'm:{[:lower:]}={[:upper:]}' 'm:{[:upper:]}={[:lower:]}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 autoload -Uz compinit && compinit
@@ -35,7 +36,14 @@ autoload -Uz compinit && compinit
 source /home/cam/.local/share/copper/cu-setup.sh
 
 alias in='task add +in'
+alias scala-run='scala-cli run --server=false'
 
 [ "$TERM" = "alacritty" ] && alias ssh='TERM=xterm-256color ssh'
+
+source ~/.zprofile
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{[:lower:]}={[:upper:]}' 'm:{[:upper:]}={[:lower:]}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+source ~/.local/share/copper/cu-setup
 
 eval "$(starship init zsh)"
