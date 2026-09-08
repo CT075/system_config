@@ -13,5 +13,18 @@
   },
   "outputStyle": "writelikeme",
   "theme": "dark",
-  "editorMode": "vim"
+  "editorMode": "vim",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.cwd // \"\"' | { read -r d; notify-send -a \"Claude Code\" -i dialog-information \"Claude Code\" \"Response finished${d:+ in ${d##*/}}\"; } 2>/dev/null || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
 }
