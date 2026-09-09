@@ -1,0 +1,16 @@
+#!/bin/bash
+# The repo's host key, which is what dotfiles/hosts/ is indexed by.
+#
+# ~/.host is where the shell config keeps SYSNAME. It's a zsh fragment that
+# also sources a prompt theme and calls bindkey, so pull the one line out
+# instead of sourcing the file. Not every host has one; fall back to hostname.
+
+set -eu
+
+sysname=${SYSNAME:-}
+if [ -z "$sysname" ] && [ -f ~/.host ]; then
+  sysname=$(sed -n 's/^[[:space:]]*export[[:space:]]*SYSNAME=//p' ~/.host \
+    | tr -d "\"'" | head -n1)
+fi
+
+echo "${sysname:-$(hostname)}"

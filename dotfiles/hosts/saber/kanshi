@@ -1,0 +1,16 @@
+# Output geometry. 20-output.conf restarts kanshi.service on every sway
+# reload, so this file is the only place positions are set.
+#
+# Copied off the pre-modularization ~/.config/kanshi/config, which is where
+# these positions had already moved out of the sway config.
+
+profile docked {
+  output DP-2 position 0,0 mode 1920x1080
+  output HDMI-A-1 position 1920,0 mode 1920x1080
+  output eDP-1 position 3840,0
+}
+
+profile external {
+  output eDP-1 position 0,0
+  output HDMI-A-1 position 1920,0 mode 1920x1080
+}

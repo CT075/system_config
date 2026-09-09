@@ -10,20 +10,12 @@ set -eu
 
 here=$(cd "$(dirname "$0")/.." && pwd)
 
-# ~/.host is where the shell config keeps SYSNAME. It's a zsh fragment that
-# also sources a prompt theme and calls bindkey, so pull the one line out
-# instead of sourcing the file. Not every host has one; fall back to hostname.
-sysname=${SYSNAME:-}
-if [ -z "$sysname" ] && [ -f ~/.host ]; then
-  sysname=$(sed -n 's/^[[:space:]]*export[[:space:]]*SYSNAME=//p' ~/.host \
-    | tr -d "\"'" | head -n1)
-fi
-sysname=${sysname:-$(hostname)}
+sysname=$("$here/scripts/sysname")
 
 host_dir="$here/dotfiles/hosts/$sysname"
 if [ ! -f "$host_dir/sway.conf" ]; then
   echo "no sway.conf for host '$sysname'" >&2
-  echo "copy dotfiles/hosts/default/sway.conf to dotfiles/hosts/$sysname/ and fill it in" >&2
+  echo "run scripts/init-sway-host to generate one" >&2
   exit 1
 fi
 
