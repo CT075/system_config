@@ -1,0 +1,196 @@
+#!/bin/bash
+# Pick and switch the notification daemon.
+#
+# mako and swaync each ship a file in /usr/share/dbus-1/services/ claiming the
+# same bus name, org.freedesktop.Notifications. dbus-broker takes the first file
+# it reads for a name and says so in the journal:
+#
+#   Ignoring duplicate name 'org.freedesktop.Notifications' in service file
+#   '/usr/share//dbus-1/services/org.erikreider.swaync.service'
+#
+# So with both packages installed the daemon you get is decided by directory
+# scan order. That is what this script is for. It writes one activation file
+# under ~/.local/share/dbus-1/services/, which the bus searches ahead of
+# /usr/share, so the choice made here wins outright.
+#
+# Both packages also ship a systemd user unit that is Type=dbus on that name and
+# WantedBy=graphical-session.target, which is how a session service is supposed
+# to start under sway-systemd. `use` enables exactly one of them and disables the
+# other, so the enablement state and the activation file always agree.
+#
+# Nothing here starts a daemon at login. sway-session.target does that, after
+# session.sh has imported WAYLAND_DISPLAY into the user manager, which is what
+# swaync.service's ConditionEnvironment needs. Starting it from sway's autostart
+# instead would race that import and silently skip the unit. On a host that has
+# never run `notifyd use`, the first notification D-Bus-activates the resolved
+# daemon through the activation file, and the login after that starts it with
+# the session.
+#
+# The choice deliberately isn't a sway host hook. Every hook in
+# hosts/$SYSNAME/sway.conf names a program the machine either has or hasn't, and
+# adding a tenth one to nine host files to write "mako" nine times costs more
+# than resolving it here does.
+#
+# Resolution order: $NOTIFYD, then the pin file, then the first daemon in
+# $PREFERENCE that is installed.
+
+set -eu
+
+PREFERENCE="swaync mako"
+PIN=${XDG_CONFIG_HOME:-$HOME/.config}/notifyd
+SERVICES=${XDG_DATA_HOME:-$HOME/.local/share}/dbus-1/services
+BUS_NAME=org.freedesktop.Notifications
+
+usage() {
+  cat >&2 <<EOF
+usage: notifyd sync | toggle | status | use <$(echo "$PREFERENCE" | tr ' ' '|')|auto>
+
+  sync    resolve a daemon and make the activation file and the unit
+          enablement agree with it. Idempotent, starts nothing. Called from
+          sway's 40-autostart.conf.
+  toggle  swaync's control centre, or mako's dismiss-all, whichever is running.
+  status  what is resolved, running, enabled, and who owns the bus name.
+  use     pin a daemon and swap to it now, no re-login. "auto" drops the pin.
+EOF
+  exit 2
+}
+
+known() {
+  case " $PREFERENCE " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+}
+
+unit() {
+  case $1 in
+    mako)   echo mako.service ;;
+    swaync) echo swaync.service ;;
+    *)      return 1 ;;
+  esac
+}
+
+# The daemon that should be running, which is not always the one that is.
+resolve() {
+  want=${NOTIFYD:-}
+  if [ -z "$want" ] && [ -f "$PIN" ]; then
+    want=$(tr -d '[:space:]' < "$PIN")
+  fi
+  if [ -n "$want" ]; then
+    known "$want" || { echo "notifyd: unknown daemon '$want'" >&2; exit 1; }
+    command -v "$want" >/dev/null 2>&1 \
+      || { echo "notifyd: pinned to '$want', which isn't installed" >&2; exit 1; }
+    echo "$want"
+    return
+  fi
+  for d in $PREFERENCE; do
+    if command -v "$d" >/dev/null 2>&1; then echo "$d"; return; fi
+  done
+  echo "notifyd: none of [$PREFERENCE] installed" >&2
+  exit 1
+}
+
+# The daemon actually holding the bus name, for toggle and status.
+running() {
+  for d in $PREFERENCE; do
+    if pgrep -x "$d" >/dev/null 2>&1; then echo "$d"; return; fi
+  done
+  return 1
+}
+
+# SystemdService= routes activation through the unit, so a daemon started by the
+# first notification and one started by sway-session.target are the same job and
+# systemd deduplicates them. Without it the two paths race and produce a second
+# process that dies on the bus name.
+claim() {
+  mkdir -p "$SERVICES"
+  cat > "$SERVICES/$BUS_NAME.service" <<EOF
+# Written by sys_base/scripts/notifyd. Edits here are overwritten; pin a daemon
+# with \`notifyd use <name>\` instead.
+[D-BUS Service]
+Name=$BUS_NAME
+Exec=$(command -v "$1")
+SystemdService=$(unit "$1")
+EOF
+}
+
+# Exactly one unit enabled. That is what keeps them apart: both are Type=dbus on
+# the same name, so two enabled units means one starts and the other fails, and
+# swaync.service carries Restart=on-failure, which turns that into a retry loop.
+enable_only() {
+  for d in $PREFERENCE; do
+    if [ "$d" = "$1" ]; then
+      systemctl --user enable "$(unit "$d")" >/dev/null 2>&1 || true
+    else
+      systemctl --user disable "$(unit "$d")" >/dev/null 2>&1 || true
+    fi
+  done
+}
+
+case ${1:-} in
+  sync)
+    daemon=$(resolve)
+    claim "$daemon"
+    enable_only "$daemon"
+    ;;
+  toggle)
+    case $(running || resolve) in
+      swaync) exec swaync-client --toggle-panel --skip-wait ;;
+      mako)   exec makoctl dismiss --all ;;
+    esac
+    ;;
+  status)
+    daemon=$(resolve)
+    echo "resolved: $daemon"
+    echo "running:  $(running || echo none)"
+    for d in $PREFERENCE; do
+      command -v "$d" >/dev/null 2>&1 || continue
+      printf 'unit:     %-14s %s\n' "$(unit "$d")" \
+        "$(systemctl --user is-enabled "$(unit "$d")" 2>&1)"
+    done
+    printf 'bus name: '
+    busctl --user call org.freedesktop.DBus /org/freedesktop/DBus \
+      org.freedesktop.DBus GetNameOwner s "$BUS_NAME" 2>/dev/null \
+      || echo unowned
+    echo "pin:      $([ -f "$PIN" ] && cat "$PIN" || echo "none, falling back to [$PREFERENCE]")"
+    ;;
+  use)
+    want=${2:-}
+    [ -n "$want" ] || usage
+    if [ "$want" = auto ]; then
+      rm -f "$PIN"
+      echo "pin dropped; resolving by preference"
+    else
+      known "$want" || { echo "notifyd: unknown daemon '$want'" >&2; exit 1; }
+      command -v "$want" >/dev/null 2>&1 \
+        || { echo "notifyd: $want isn't installed" >&2; exit 1; }
+      mkdir -p "$(dirname "$PIN")"
+      echo "$want" > "$PIN"
+      echo "pinned to $want"
+    fi
+    daemon=$(resolve)
+    claim "$daemon"
+    enable_only "$daemon"
+    # Make the bus read the new file before anything can activate the old
+    # choice out from under the swap.
+    busctl --user call org.freedesktop.DBus /org/freedesktop/DBus \
+      org.freedesktop.DBus ReloadConfig >/dev/null 2>&1 || true
+    # Only swap the live daemon where there's a compositor to swap it under.
+    # Over ssh this is a pin change and nothing else.
+    if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+      # Clear every daemon, the incoming one included. A stray it doesn't own
+      # makes the unit exit 1 with "An instance is already running", and
+      # swaync.service's Restart=on-failure turns that into five restarts and
+      # a rate limit rather than a visible error. swaync in particular gets
+      # activated behind your back through its second bus name,
+      # org.erikreider.swaync.cc, which no choice made here covers.
+      for d in $PREFERENCE; do
+        systemctl --user stop "$(unit "$d")" >/dev/null 2>&1 || true
+        pkill -x "$d" 2>/dev/null || true
+      done
+      systemctl --user reset-failed "$(unit "$daemon")" >/dev/null 2>&1 || true
+      systemctl --user start "$(unit "$daemon")"
+      echo "now running $daemon ($(unit "$daemon"))"
+    fi
+    ;;
+  *)
+    usage
+    ;;
+esac
