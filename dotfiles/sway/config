@@ -1,9 +1,15 @@
 # sway config loader.
 #
-# This file holds nothing but includes. Everything real lives in config.d/,
-# which sway reads in filename order, so the numeric prefixes are the load
-# order and variables defined in 00-variables.conf are visible to the rest.
+# This file holds nothing but includes, in three tiers. variables.conf sets
+# what every host shares, host.conf uses those to declare this machine's
+# monitors and preferred applications, and config.d/ reads both.
+#
+# variables.conf sits outside config.d/ rather than being named twice here.
+# Sway does skip a repeated include, but leaning on that puts a silent re-run
+# of every `set`, clobbering all of host.conf, one bug away.
 
 include /etc/sway/config.d/10-systemd-session.conf
 
+include ~/.config/sway/variables.conf
+include ~/.config/sway/host.conf
 include ~/.config/sway/config.d/*.conf

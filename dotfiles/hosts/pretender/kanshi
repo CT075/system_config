@@ -1,0 +1,11 @@
+# Output geometry. 20-output.conf restarts kanshi.service on every sway
+# reload, so this file is the only place positions are set.
+
+profile docked {
+  output "Dell Inc. DELL P2422H D599FQ3" enable mode 1920x1080@60Hz position 0,0
+  output "AU Optronics 0xF99A Unknown" enable mode 1920x1200@60Hz position 1920,0
+}
+
+profile undocked {
+  output "AU Optronics 0xF99A Unknown" enable mode 1920x1200@60Hz position 0,0
+}

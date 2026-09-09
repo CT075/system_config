@@ -1,0 +1,56 @@
+#!/bin/bash
+# Symlink the sway config into ~/.config, picking the per-host file by SYSNAME.
+#
+# scripts/init can't do this. Its loop only knows how to map dotfiles/X to
+# ~/.X, and sway reads ~/.config/sway/ instead. Symlinks rather than an
+# `include .../$(hostname)/...` in the loader because the repo's host key is
+# SYSNAME from ~/.host, and the two are only incidentally equal here.
+
+set -eu
+
+here=$(cd "$(dirname "$0")/.." && pwd)
+
+# ~/.host is where the shell config keeps SYSNAME. It's a zsh fragment that
+# also sources a prompt theme and calls bindkey, so pull the one line out
+# instead of sourcing the file. Not every host has one; fall back to hostname.
+sysname=${SYSNAME:-}
+if [ -z "$sysname" ] && [ -f ~/.host ]; then
+  sysname=$(sed -n 's/^[[:space:]]*export[[:space:]]*SYSNAME=//p' ~/.host \
+    | tr -d "\"'" | head -n1)
+fi
+sysname=${sysname:-$(hostname)}
+
+host_dir="$here/dotfiles/hosts/$sysname"
+if [ ! -f "$host_dir/sway.conf" ]; then
+  echo "no sway.conf for host '$sysname'" >&2
+  echo "copy dotfiles/hosts/default/sway.conf to dotfiles/hosts/$sysname/ and fill it in" >&2
+  exit 1
+fi
+
+mkdir -p ~/.config/sway ~/.config/kanshi
+
+# A real file here is the pre-repo config, so keep it. Reruns hit a symlink and
+# skip this.
+if [ -f ~/.config/sway/config ] && [ ! -L ~/.config/sway/config ]; then
+  backup=~/.config/sway/config.bak-$(date +%Y%m%d)
+  echo "backing up existing config to $backup"
+  mv ~/.config/sway/config "$backup"
+fi
+
+# ln -sfn into a path that is already a real directory would nest the link
+# inside it rather than replace it, so refuse instead.
+link() {
+  if [ -d "$2" ] && [ ! -L "$2" ]; then
+    echo "$2 is a real directory; move it aside and rerun" >&2
+    exit 1
+  fi
+  echo "$2 -> $1"
+  ln -sfn "$1" "$2"
+}
+
+link "$here/dotfiles/sway/config" ~/.config/sway/config
+link "$here/dotfiles/sway/variables.conf" ~/.config/sway/variables.conf
+link "$here/dotfiles/sway/config.d" ~/.config/sway/config.d
+link "$here/scripts/idle-suspend" ~/.config/sway/idle-suspend
+link "$host_dir/sway.conf" ~/.config/sway/host.conf
+link "$host_dir/kanshi" ~/.config/kanshi/config

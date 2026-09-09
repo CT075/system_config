@@ -1,0 +1,9 @@
+#!/bin/sh
+# Suspend on idle, but only when running on battery.
+#
+# Plugged in, an idle session is left alone so long unattended builds survive.
+# On battery, idling is how the laptop ends up flat: nothing else suspends it,
+# and there is no hibernate fallback (Secure Boot lockdown, zram-only swap).
+
+[ "$(cat /sys/class/power_supply/AC/online 2>/dev/null)" = 0 ] || exit 0
+exec systemctl suspend
