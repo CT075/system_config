@@ -9,6 +9,22 @@ The config is checked in. Run it and let it win. Two of its behaviours are worth
 - With `haddock-style: multi-line`, any `-- |` running to more than one line is rewritten as a `{- | ... -}` block. Writing `-- |` is how block comments appear in a tree that doesn't want them. Plain `--` on internal code avoids the whole problem.
 - A comment line beginning with `*` is read as a Haddock bullet and gets reflowed, blank lines and all. `*emphasis*` mid-sentence survives; at the start of a line it doesn't.
 
+`column-limit` is what fourmolu aims at, not what it enforces. It won't break a
+string literal or a `<>` chain of them, so a message comes back from the
+formatter exactly as written and a clean run is no evidence the file fits in the
+limit. The limit is about code. A string literal that runs past 88 columns is
+fine as it stands, and splitting one across `<>` to buy the columns back is
+worse than the long line:
+
+```haskell
+-- Fine.
+"a definition matching that shape replaces it, and anything else needs another name"
+
+-- Not an improvement.
+"a definition matching that shape replaces it"
+  <> ", and anything else needs another name"
+```
+
 ## List comprehensions
 
 I don't like them in Haskell. Prefer the named combinator, which says which of the four things the comprehension was doing:

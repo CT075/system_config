@@ -284,7 +284,7 @@ au BufWritePre * call FormatBuffer()
 let g:neoformat_enabled_ocaml = ['ocamlformat']
 let g:neoformat_haskell_ormolu =
 \ { 'exe': 'fourmolu'
-\ , 'args': ['--stdin-input-file', '"%p"']
+\ , 'args': ['--stdin-input-file', '"%:p"']
 \ , 'stdin': 1
 \ }
 let g:neoformat_enabled_haskell = ['ormolu']
