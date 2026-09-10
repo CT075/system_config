@@ -27,7 +27,7 @@ if [ ! -f "$host_dir/sway.conf" ]; then
   exit 1
 fi
 
-mkdir -p ~/.config/sway ~/.config/kanshi
+mkdir -p ~/.config/sway ~/.config/kanshi ~/.config/swaync
 
 # A real file here is the pre-repo config, so keep it. Reruns hit a symlink and
 # skip this.
@@ -55,3 +55,5 @@ link "$here/scripts/idle-suspend" ~/.config/sway/idle-suspend
 link "$here/scripts/notifyd" ~/.config/sway/notifyd
 link "$host_dir/sway.conf" ~/.config/sway/host.conf
 link "$host_dir/kanshi" ~/.config/kanshi/config
+link "$here/dotfiles/swaync/config.json" ~/.config/swaync/config.json
+link "$here/dotfiles/swaync/style.css" ~/.config/swaync/style.css

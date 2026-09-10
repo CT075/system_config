@@ -43,14 +43,15 @@ BUS_NAME=org.freedesktop.Notifications
 
 usage() {
   cat >&2 <<EOF
-usage: notifyd sync | toggle | status | use <$(echo "$PREFERENCE" | tr ' ' '|')|auto>
+usage: notifyd sync | panel | dismiss | status | use <$(echo "$PREFERENCE" | tr ' ' '|')|auto>
 
-  sync    resolve a daemon and make the activation file and the unit
-          enablement agree with it. Idempotent, starts nothing. Called from
-          sway's 40-autostart.conf.
-  toggle  swaync's control centre, or mako's dismiss-all, whichever is running.
-  status  what is resolved, running, enabled, and who owns the bus name.
-  use     pin a daemon and swap to it now, no re-login. "auto" drops the pin.
+  sync     resolve a daemon and make the activation file and the unit
+           enablement agree with it. Idempotent, starts nothing. Called from
+           sway's 40-autostart.conf.
+  panel    swaync's control centre, or the nearest mako has.
+  dismiss  clear what's on screen.
+  status   what is resolved, running, enabled, and who owns the bus name.
+  use      pin a daemon and swap to it now, no re-login. "auto" drops the pin.
 EOF
   exit 2
 }
@@ -130,9 +131,17 @@ case ${1:-} in
     claim "$daemon"
     enable_only "$daemon"
     ;;
-  toggle)
+  panel)
     case $(running || resolve) in
       swaync) exec swaync-client --toggle-panel --skip-wait ;;
+      # mako has no panel. Restoring the last notification out of the history
+      # buffer is the closest it gets to reading back what you missed.
+      mako)   exec makoctl restore ;;
+    esac
+    ;;
+  dismiss)
+    case $(running || resolve) in
+      swaync) exec swaync-client --close-all ;;
       mako)   exec makoctl dismiss --all ;;
     esac
     ;;

@@ -1,0 +1,107 @@
+/* swaync overrides. Loaded on top of /etc/xdg/swaync/style.css, not instead of
+ * it, which is why this file is a handful of rules rather than a 15KB fork.
+ * swaync parses the packaged stylesheet first and this one after; `swaync
+ * --skip-system-css` is the flag that turns the first half off, and it only
+ * makes sense because both are normally read.
+ *
+ * GTK 4 CSS, so no `display`, and the packaged theme drives almost everything
+ * through custom properties on :root. Redefining those is the cheap way to
+ * restyle; a plain selector is only needed where the packaged rule hardcodes
+ * something.
+ */
+
+/*** Icons off ***/
+
+/* `"image-visibility": "never"` in config.json covers the notification body:
+ * the primary image, the app-icon badge that rides on it, and an image-path
+ * hint. It does not touch the app icon in an expanded group header, so that one
+ * is handled here. Zeroing the icon size collapses the GtkImage and the margins
+ * stop it reserving space. */
+.notification-group .notification-group-headers .notification-group-icon {
+  -gtk-icon-size: 0;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/*** Flat mako/dunst styling ***/
+
+:root {
+  /* Solid. The packaged theme runs the notification at 0.8 alpha over whatever
+   * is behind it, and over a terminal that is the whole readability problem.
+   * --noti-bg is a bare triple because the packaged rule feeds it to rgba(). It
+   * is the normal-urgency fill, and it only shows on a notification that
+   * somehow carries no urgency class. */
+  --noti-bg: 40, 85, 119;
+  --noti-bg-alpha: 1;
+  --noti-bg-darker: rgb(33, 70, 98);
+  --cc-bg: rgb(36, 36, 36);
+
+  /* mako and dunst are both square and unshadowed by default. */
+  --border-radius: 0;
+  --notification-shadow: none;
+
+  --noti-close-bg: rgba(255, 255, 255, 0.15);
+  --noti-close-bg-hover: rgba(255, 255, 255, 0.25);
+}
+
+/* Urgency fills the box, not just the frame. Each pair is a body and a frame
+ * roughly twice its lightness, which is what keeps a popup legible when it
+ * lands on a sway title bar: #285577 is also sway's focused title bar colour,
+ * so a mako-exact #4c7899 frame around a #285577 body left the two merged with
+ * only a hairline between them.
+ *
+ * Every body clears 7:1 against white text. The packaged theme ships .low,
+ * .normal and .critical as empty rule stubs, so all of this is additive. */
+
+.notification-row .notification-background .notification.normal {
+  background: rgb(40, 85, 119);
+  border-color: rgb(122, 166, 201);
+}
+
+.notification-row .notification-background .notification.critical {
+  background: rgb(140, 45, 45);
+  border-color: rgb(214, 122, 122);
+}
+
+.notification-row .notification-background .notification.low {
+  background: rgb(63, 63, 63);
+  border-color: rgb(130, 130, 130);
+}
+
+/* Hover is a child element painting its own background over the box, so it
+ * needs the urgency colour too or every hover turns the notification grey.
+ * Five class selectors each, which outranks both the packaged popup rule and
+ * the packaged control-centre one. */
+.notification-row .notification-background .notification.normal .notification-default-action:hover,
+.notification-row .notification-background .notification.normal .notification-action:hover {
+  background: rgb(52, 108, 150);
+}
+
+.notification-row .notification-background .notification.critical .notification-default-action:hover,
+.notification-row .notification-background .notification.critical .notification-action:hover {
+  background: rgb(168, 58, 58);
+}
+
+.notification-row .notification-background .notification.low .notification-default-action:hover,
+.notification-row .notification-background .notification.low .notification-action:hover {
+  background: rgb(80, 80, 80);
+}
+
+.notification-row .notification-background .notification {
+  border: 2px solid;
+}
+
+/* Margin from the screen edge, and half the gap between stacked popups, since
+ * adjacent rows each contribute their own. The packaged 6px 12px is tighter
+ * than mako's default margin of 10. */
+.notification-row .notification-background {
+  padding: 12px;
+}
+
+/* Breathing room inside the frame. mako's default padding is 5 against the
+ * packaged 4px here, which put the summary hard up against it. */
+.notification-row .notification-background .notification .notification-default-action {
+  padding: 8px 10px;
+}

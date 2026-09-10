@@ -7,6 +7,12 @@ description: Specifies Cam's general coding style and conventions. Invoke with /
 
 Apply the user's personal programming style to all programming tasks. When existing repository conventions conflict with these guidelines, existing repository conventions win.
 
+The checked-in code is the convention, not the formatter config sitting next to
+it. Run a formatter's check before its write: on a repo that already fails that
+check, formatting the files you touched rewrites lines you never wrote and the
+diff stops being reviewable. Match the code around your change by hand instead,
+and take the formatter's shape only for the lines you added.
+
 ## Core principles
 
 - Brevity matters. Overly-verbose code can be hard to read, even if it is more explicit.
