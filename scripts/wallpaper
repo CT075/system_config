@@ -1,0 +1,108 @@
+#!/bin/bash
+# Set the sway background from ~/.local/state/bg, and pick what goes in it.
+#
+# The state file is one line, a mode and maybe a path:
+#
+#   image /path/to/file.png
+#   random /path/to/folder
+#   colour
+#
+# Anything that doesn't come out as an image lands on $COLOUR: no file, an
+# empty one, an unknown mode, an image that's since been deleted, or a folder
+# with nothing in it.
+#
+# The choice deliberately isn't a host hook. Every hook in
+# hosts/$SYSNAME/sway.conf names software the machine has or hasn't, and a hook
+# naming a path that stops resolving is a config error that puts swaynag up at
+# every reload.
+#
+# 20-output.conf runs `apply` with exec_always, so random re-rolls on every
+# login and every reload.
+
+set -eu
+
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}/bg
+LINK=${XDG_RUNTIME_DIR:?}/wallpaper
+COLOUR='#202060'
+
+usage() {
+  cat >&2 <<EOF
+usage: wallpaper apply | pick | use <colour | image <file> | random <dir>>
+
+  apply   set the background from $STATE. Called from sway's 20-output.conf.
+  pick    choose a mode and a file or folder with zenity, then use it.
+  use     write the state file and apply it.
+EOF
+  exit 2
+}
+
+apply() {
+  local mode= path= img=
+  [ -f "$STATE" ] && read -r mode path < "$STATE" || true
+
+  case $mode in
+    image)  img=$path ;;
+    random)
+      img=$(find "$path" -maxdepth 1 -type f \
+        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) 2>/dev/null \
+        | shuf -n 1)
+      ;;
+  esac
+
+  # sway runs the bg path through wordexp, which is how `~` works there, and
+  # the same pass turns a filename like `wall (1).jpg` into "Invalid syntax".
+  # A fixed link means no chosen filename ever reaches sway's parser.
+  if [ -f "$img" ]; then
+    ln -sfn "$img" "$LINK"
+    # fill rather than stretch, since random images come in any aspect ratio.
+    exec swaymsg -q output '*' bg "$LINK" fill
+  fi
+
+  case $mode in
+    ''|colour) ;;
+    image|random) echo "wallpaper: nothing usable at '$path', using $COLOUR" >&2 ;;
+    *) echo "wallpaper: unknown mode '$mode' in $STATE, using $COLOUR" >&2 ;;
+  esac
+  exec swaymsg -q output '*' bg "$COLOUR" solid_color
+}
+
+use() {
+  local mode=${1:-} path=${2:-}
+  case $mode in
+    colour) ;;
+    image)  [ -f "$path" ] || { echo "wallpaper: '$path' isn't a file" >&2; exit 1; } ;;
+    random) [ -d "$path" ] || { echo "wallpaper: '$path' isn't a folder" >&2; exit 1; } ;;
+    *)      usage ;;
+  esac
+
+  mkdir -p "$(dirname "$STATE")"
+  echo "$mode${path:+ $(realpath "$path")}" > "$STATE"
+  apply
+}
+
+# Cancelling any of the dialogs exits here and leaves the state file alone.
+pick() {
+  local mode path=
+  mode=$(zenity --list --title=Wallpaper --text='Background' --column=Mode \
+    colour image random) && [ -n "$mode" ] || exit 0
+
+  case $mode in
+    image)
+      path=$(zenity --file-selection --title='Wallpaper image' \
+        --file-filter='Images | *.png *.jpg *.jpeg *.PNG *.JPG *.JPEG') || exit 0
+      ;;
+    random)
+      path=$(zenity --file-selection --directory --title='Wallpaper folder') \
+        || exit 0
+      ;;
+  esac
+
+  use "$mode" "$path"
+}
+
+case ${1:-} in
+  apply) apply ;;
+  pick)  pick ;;
+  use)   shift; use "$@" ;;
+  *)     usage ;;
+esac

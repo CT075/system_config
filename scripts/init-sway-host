@@ -2,11 +2,11 @@
 # Generate dotfiles/hosts/$SYSNAME/sway.conf by picking, for each hook that
 # names a program, from the ones actually installed.
 #
-# The three hooks that describe the machine rather than its software get
-# working defaults instead of a prompt: $wallpaper and $autostart_xdg are
-# fine as they land, and $out_* is left as a placeholder the script names on
-# the way out. A placeholder rather than an empty value because sway takes
-# `focus output nosuchthing` as a warning and an empty one as a parse error.
+# The hooks that describe the machine rather than its software get working
+# defaults instead of a prompt: $autostart_xdg is fine as it lands, and $out_*
+# is left as a placeholder the script names on the way out. A placeholder
+# rather than an empty value because sway takes `focus output nosuchthing` as a
+# warning and an empty one as a parse error.
 
 set -eu
 
@@ -172,12 +172,6 @@ set \$brightness_down $brightness_down
 
 # XDG autostart. \`dex --autostart --environment i3\` where dex is installed.
 set \$autostart_xdg true
-
-# Wallpaper, the whole tail of \`output * bg\` in 20-output.conf, so either
-# \`/path/to/image.png stretch\` or a solid colour. A path that doesn't resolve
-# is a config error rather than a warning and puts swaynag on screen at every
-# reload, so the default is the colour.
-set \$wallpaper #242424 solid_color
 
 # Monitors, for the \$mod+w/e/r bindings in 64-bindings-output.conf. Laid out
 # left to right, and kept in sync by hand with the positions in

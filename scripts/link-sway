@@ -45,6 +45,7 @@ link "$here/dotfiles/sway/variables.conf" ~/.config/sway/variables.conf
 link "$here/dotfiles/sway/config.d" ~/.config/sway/config.d
 link "$here/scripts/idle-suspend" ~/.config/sway/idle-suspend
 link "$here/scripts/notifyd" ~/.config/sway/notifyd
+link "$here/scripts/wallpaper" ~/.config/sway/wallpaper
 link "$host_dir/sway.conf" ~/.config/sway/host.conf
 link "$host_dir/kanshi" ~/.config/kanshi/config
 link "$here/dotfiles/swaync/config.json" ~/.config/swaync/config.json
