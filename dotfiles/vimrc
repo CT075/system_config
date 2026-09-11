@@ -145,6 +145,15 @@ augroup CoqtailHighlights
   autocmd ColorScheme * hi def CoqtailSent    ctermbg=blue guibg=blue
 augroup END
 
+augroup TransparentBackground
+  autocmd!
+  autocmd ColorScheme * hi Normal      guibg=NONE ctermbg=NONE
+  autocmd ColorScheme * hi NonText     guibg=NONE ctermbg=NONE
+  autocmd ColorScheme * hi EndOfBuffer guibg=NONE ctermbg=NONE
+  autocmd ColorScheme * hi LineNr      guibg=NONE ctermbg=NONE
+  autocmd ColorScheme * hi SignColumn  guibg=NONE ctermbg=NONE
+augroup END
+
 if exists('+termguicolors')
   "let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
   "let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
