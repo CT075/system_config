@@ -23,6 +23,18 @@ and take the formatter's shape only for the lines you added.
 
 Functional style is preferred to explicit loops wherever possible.
 
+## Differential tests need inputs that discriminate
+
+A test that runs a computation and compares it against a reference computation
+of the same expression proves nothing when the expression is constant. Both
+sides agree, on every input, for the wrong reason. Check that the expected
+values actually differ across the inputs, and assert it in the test so a later
+edit can't quietly flatten them:
+
+```scala
+assert(inputs.map(reference).distinct.length == 2)
+```
+
 ## Comments
 
 Comments should always be written in my voice. Read and invoke the `/writelikeme` skill before writing comment text. It is okay for code comments to read more casual unless they are user-facing documentation.
