@@ -11,6 +11,9 @@
       }
     }
   },
+  "attribution": {
+    "commit": ""
+  },
   "outputStyle": "writelikeme",
   "theme": "dark",
   "editorMode": "vim",
