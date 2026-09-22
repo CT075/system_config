@@ -43,7 +43,7 @@ BUS_NAME=org.freedesktop.Notifications
 
 usage() {
   cat >&2 <<EOF
-usage: notifyd sync | panel | dismiss | status | use <$(echo "$PREFERENCE" | tr ' ' '|')|auto>
+usage: notifyd sync | panel | dismiss | dnd <on|off|status> | status | use <$(echo "$PREFERENCE" | tr ' ' '|')|auto>
 
   sync     resolve a daemon and make the activation file and the unit
            enablement agree with it. Idempotent, starts nothing. Called from
@@ -143,6 +143,36 @@ case ${1:-} in
     case $(running || resolve) in
       swaync) exec swaync-client --close-all ;;
       mako)   exec makoctl dismiss --all ;;
+    esac
+    ;;
+  # swaync has do-not-disturb as a first-class flag. mako has no such concept
+  # and instead has named modes, so the nearest equivalent is a mode called
+  # do-not-disturb with `invisible=1` in its own section of the mako config.
+  # Without that section the mode is set and nothing changes, which is a
+  # silent no-op rather than an error, so don't read a clean exit here as
+  # proof that popups are actually suppressed.
+  dnd)
+    case ${2:-} in
+      on|off|status) ;;
+      *) usage ;;
+    esac
+    case $(running || resolve) in
+      swaync)
+        case $2 in
+          on)     swaync-client --dnd-on >/dev/null ;;
+          off)    swaync-client --dnd-off >/dev/null ;;
+          status) swaync-client --get-dnd ;;
+        esac
+        ;;
+      mako)
+        case $2 in
+          on)     makoctl mode -a do-not-disturb >/dev/null ;;
+          off)    makoctl mode -r do-not-disturb >/dev/null ;;
+          status)
+            makoctl mode | grep -qx do-not-disturb && echo true || echo false
+            ;;
+        esac
+        ;;
     esac
     ;;
   status)

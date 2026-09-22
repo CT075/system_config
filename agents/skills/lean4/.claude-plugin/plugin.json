@@ -1,0 +1,10 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "lean4",
+  "version": "0.1.0",
+  "description": "Lean 4 language server (lake serve) for goToDefinition, findReferences and diagnostics in .lean files",
+  "author": {
+    "name": "Cameron Wong",
+    "email": "cwong@g.harvard.edu"
+  }
+}

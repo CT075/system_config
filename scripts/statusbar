@@ -1,0 +1,120 @@
+#!/bin/bash
+# swaybar's status_command: i3status, plus whichever mode flags are up.
+#
+# config.d/70-bar.conf points the one bar at this instead of straight at
+# i3status. The flag used to be a second, normally-invisible swaybar pinned to
+# the laptop panel, which kept it away from the audience but meant the bar only
+# existed to hold one word. Folding it into the real status line costs the
+# privacy and buys back a whole bar; in mirrored mode the room sees the status
+# line anyway, clock and battery included.
+#
+# The i3bar protocol is a header object, then a line holding a bare `[`, then
+# one array per update, every line after the first prefixed with a comma:
+#
+#   {"version":1}
+#   [
+#   [{"name":"tztime local",...}]
+#   ,[{"name":"tztime local",...}]
+#
+# So inserting blocks at the head of the status line is a string edit on the
+# lines that start an array, and every other line passes through untouched.
+# Parsing the stream properly would mean a JSON parser that can cope with an
+# array that never closes, which is more than the edit is worth.
+#
+# Reading the state files once per update, rather than being signalled, is what
+# keeps this from needing any IPC. The cost is that a flag appears up to
+# `interval` seconds late, which is why ~/.config/sway/present and
+# ~/.config/sway/live both poke i3status with SIGUSR1 on the way in and out.
+#
+# The dependency that isn't visible from here is ~/.config/i3status/config.
+# i3status picks its output format from the name of its parent process; it knows
+# swaybar and does not know statusbar, so without the `output_format = "i3bar"`
+# pinned in that file every block silently degrades to uncoloured plain text
+# with no error anywhere. link-sway links it. Don't let it drop.
+
+set -u
+
+RUNTIME=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+PRESENTING=$RUNTIME/presenting
+LIVE=$RUNTIME/live
+
+# separator_block_width rather than the default, so a coloured patch doesn't
+# grow a wide gap on its right and read as a rendering fault.
+block() {
+  printf '{"name":"%s","full_text":" %s ","color":"#ffffff","background":"%s","separator":false,"separator_block_width":9}' \
+    "$1" "$2" "$3"
+}
+
+# Recomputed for every status line, since nothing tells this script when a state
+# file appears or goes.
+#
+# The order is fixed rather than by mtime, and PRESENTING stays at the head: a
+# flag that moves position reads as a flag that changed meaning.
+blocks=''
+labels=''
+flags() {
+  blocks=''
+  labels=''
+
+  if [ -e "$PRESENTING" ]; then
+    blocks=$(block presenting PRESENTING '#aa0000')
+    labels='PRESENTING'
+  fi
+
+  if [ -e "$LIVE" ]; then
+    [ -n "$blocks" ] && blocks="$blocks,"
+    [ -n "$labels" ] && labels="$labels "
+    blocks="$blocks$(block live LIVE '#8a5a00')"
+    labels="${labels}LIVE"
+  fi
+}
+
+# Belt and braces on buffering. i3status flushes each update itself, but a
+# status command whose output sits in a pipe buffer looks exactly like a hung
+# bar, and that is a miserable thing to debug from a lectern.
+stdbuf -oL i3status | while IFS= read -r line; do
+  flags
+
+  if [ -z "$blocks" ]; then
+    printf '%s\n' "$line"
+    continue
+  fi
+
+  case $line in
+    '[')
+      # The line that opens the never-closing outer array. It has to be tested
+      # before the array-start pattern below, which it would otherwise match,
+      # producing a "[BLOCK," that swaybar renders as an empty bar.
+      printf '%s\n' "$line"
+      ;;
+    ',['*|'['*)
+      # Peel off the leading comma, if this isn't the first update, so the
+      # insert point is always just past a '['.
+      lead=''
+      body=$line
+      case $body in
+        ,*) lead=','; body=${body#,} ;;
+      esac
+      rest=${body#'['}
+
+      # i3status emitting an empty array would make the naive form produce
+      # "[BLOCK,]", which is the kind of malformed line swaybar reacts to by
+      # showing nothing at all.
+      if [ "$rest" = ']' ]; then
+        printf '%s[%s]\n' "$lead" "$blocks"
+      else
+        printf '%s[%s,%s\n' "$lead" "$blocks" "$rest"
+      fi
+      ;;
+    '{'*)
+      # The protocol header. Nothing to add.
+      printf '%s\n' "$line"
+      ;;
+    *)
+      # Plain-text output, which only happens if the output_format in
+      # ~/.config/i3status/config went missing. Degrade to a prefix rather
+      # than dropping the flags.
+      printf '%s | %s\n' "$labels" "$line"
+      ;;
+  esac
+done

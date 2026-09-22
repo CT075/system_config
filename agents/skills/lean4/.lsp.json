@@ -1,0 +1,12 @@
+{
+  "lean": {
+    "command": "lake",
+    "args": ["serve", "--"],
+    "extensionToLanguage": {
+      ".lean": "lean"
+    },
+    "startupTimeout": 180000,
+    "restartOnCrash": true,
+    "maxRestarts": 3
+  }
+}

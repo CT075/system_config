@@ -1,18 +1,41 @@
 #!/bin/sh -e
 
-for OUTPUT in `swaymsg -t get_outputs | jq -r '.[].name'`
-do
-  IMAGE=/tmp/$OUTPUT-lock.png
-  # Take a screenshot
-  grim -o $OUTPUT $IMAGE
-  # Pixellate it 10x
-  mogrify -scale 10% -scale 1000% $IMAGE
+# Lock the session, and return as soon as the lock is up rather than waiting for
+# the unlock.
+#
+# Returning promptly matters more than it looks. swayidle runs with -w, which
+# makes it block until a hook command exits, so a hook that sits there until the
+# user comes back wedges swayidle for the whole time the screen is locked. While
+# it is wedged it holds the logind sleep inhibitor past its deadline, no later
+# timeout can fire, and every idle event sway sends in the meantime queues on the
+# socket to be replayed in one go once it finally unblocks. swayidle(1) names the
+# pairing this wants: "the -w options is used in swayidle, and -f in swaylock".
+
+# Already locked, so leave the existing lock alone. before-sleep fires on top of
+# an idle lock often enough that without this, two swaylocks end up stacked.
+pgrep -x swaylock >/dev/null && exit 0
+
+LOCKARGS=""
+IMAGES=""
+# Only active outputs: grim fails on a disabled one, and a failed grim under -e
+# means exiting before swaylock ever runs. That fails silently, and on the
+# before-sleep path it suspends an unlocked session.
+for OUTPUT in $(swaymsg -t get_outputs | jq -r '.[] | select(.active) | .name'); do
+  IMAGE=$(mktemp --suffix=-lock.png)
+  # Screenshot the output, then pixellate it 10x.
+  grim -o "$OUTPUT" "$IMAGE"
+  mogrify -scale 10% -scale 1000% "$IMAGE"
   LOCKARGS="${LOCKARGS} --image ${OUTPUT}:${IMAGE}"
   IMAGES="${IMAGES} ${IMAGE}"
 done
 
-# Lock screen displaying this image.
-swaylock $LOCKARGS
-rm $IMAGES
-# Turn the screen off after a delay.
-sleep 30; pgrep swaylock && systemctl suspend
+swaylock -f $LOCKARGS
+
+# Reap the screenshots after the lock goes away, in the background so this script
+# can exit now. Waiting here in the foreground would be the same wedge again.
+# Blanking the display and suspending on idle both used to hang off the end of
+# this script; they belong to swayidle, which is where they now live.
+(
+  while pgrep -x swaylock >/dev/null; do sleep 2; done
+  rm -f $IMAGES
+) >/dev/null 2>&1 &

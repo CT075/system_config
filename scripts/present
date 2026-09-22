@@ -1,0 +1,121 @@
+#!/bin/bash
+# Presentation mode: stop the screen locking in the middle of a talk, stop
+# notifications appearing on a projector, and be obvious about both.
+#
+# Bound to $mod+Shift+d in config.d/66-bindings-display.conf. Deliberately not
+# bound to plugging a monitor in, because not every external screen is an
+# audience.
+#
+# Three things happen, and the third is the one that matters.
+#
+# swayidle is stopped outright rather than held off with an idle inhibitor.
+# There is no packaged CLI that holds a wayland idle-inhibit lock for you, and
+# sway's own `inhibit_idle` attaches to a window, which means the inhibit
+# follows a window you might close mid-talk. Stopping the daemon has no such
+# edge. The cost is that `loginctl lock-session` does nothing while
+# presentation mode is on, since the lock hook goes away with it.
+#
+# Do-not-disturb goes through ~/.config/sway/notifyd, so this works the same
+# whether the session resolved swaync or mako.
+#
+# And a PRESENTING block appears on the left of the existing swaybar, spliced
+# in by ~/.config/sway/statusbar. There is no signalling: that script reads the
+# state file on each i3status update, so all this has to do is create or remove
+# the file. SIGUSR1 makes i3status emit one immediately rather than at the end
+# of its five-second interval.
+#
+# The room sees it. A bar that is on every output is on the projector too, and
+# mirrored mode would show it regardless since wl-mirror captures the
+# composited output. That is a deliberate trade for not running a second
+# swaybar whose entire job is one word.
+#
+# Live mode (~/.config/sway/live) is the narrow version of this: it suppresses
+# only the suspend step and leaves swayidle up, so the screen still locks on
+# time. This mode does everything it does and more, so the two are exclusive and
+# `on` turns live mode off. Quietly, because live's exit notice promises the
+# idle chain will suspend again, and stopping swayidle makes that untrue. `off`
+# returns to the plain idle chain rather than back to live mode.
+#
+# Forgetting to turn it off is the real failure, so there are two backstops.
+# The strip is one. The other is ~/.config/sway/display hotplug, which kanshi
+# runs when a profile activates: unplug the projector and the `undocked`
+# profile calls `present off --if-on` on the way through.
+
+set -eu
+
+# Runtime rather than state: presentation mode should never survive a reboot,
+# and a stale file here would leave the strip's meaning out of step with
+# whether swayidle is actually running.
+#
+# The path is shared with ~/.config/sway/statusbar, which is the only other
+# thing that reads it.
+STATE=${XDG_RUNTIME_DIR:?}/presenting
+
+IDLE=~/.config/sway/idle
+NOTIFYD=~/.config/sway/notifyd
+LIVE=~/.config/sway/live
+
+usage() {
+  cat >&2 <<EOF
+usage: present on | off [--if-on] | toggle | status
+
+  on       hold the screen up, suppress popups, show the strip.
+  off      undo all three and say so. --if-on makes it a no-op when
+           presentation mode isn't running, which is what the hotplug hook
+           wants.
+  toggle   bound to \$mod+Shift+d.
+  status   whether it's on, and whether the pieces agree.
+EOF
+  exit 2
+}
+
+# Force i3status to emit now, so the flag appears and disappears on the
+# keystroke instead of up to five seconds later. Same signal as
+# $refresh_i3status in sway's variables.conf.
+refresh() { pkill -USR1 -x i3status 2>/dev/null || true; }
+
+is_on() { [ -e "$STATE" ]; }
+
+on() {
+  : > "$STATE"
+
+  # A no-op unless live mode was on. See the note at the top for the --quiet.
+  "$LIVE" off --if-on --quiet >/dev/null 2>&1 || true
+
+  "$IDLE" stop
+  "$NOTIFYD" dnd on >/dev/null 2>&1 || true
+  refresh
+}
+
+off() {
+  rm -f "$STATE"
+
+  refresh
+  # Turn popups back on before announcing, or the announcement is the first
+  # thing do-not-disturb swallows.
+  "$NOTIFYD" dnd off >/dev/null 2>&1 || true
+  "$IDLE" start
+
+  notify-send -a present -t 6000 "exiting presentation mode" \
+    "idle lock and notifications are back on" >/dev/null 2>&1 || true
+}
+
+case ${1:-} in
+  on)     is_on || on ;;
+  off)
+    if [ "${2:-}" = --if-on ]; then
+      is_on && off || true
+    else
+      off
+    fi
+    ;;
+  toggle) if is_on; then off; else on; fi ;;
+  status)
+    if is_on; then echo "presentation mode: on"; else echo "presentation mode: off"; fi
+    echo "swayidle:  $(pgrep -x swayidle >/dev/null 2>&1 && echo running || echo stopped)"
+    echo "dnd:       $("$NOTIFYD" dnd status 2>/dev/null || echo unknown)"
+    echo "live:      $([ -e "${XDG_RUNTIME_DIR:?}/live" ] && echo on || echo off)"
+    echo "wl-mirror: $(pgrep -x wl-mirror >/dev/null 2>&1 && echo running || echo stopped)"
+    ;;
+  *) usage ;;
+esac

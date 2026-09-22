@@ -19,7 +19,7 @@ if [ ! -f "$host_dir/sway.conf" ]; then
   exit 1
 fi
 
-mkdir -p ~/.config/sway ~/.config/kanshi ~/.config/swaync
+mkdir -p ~/.config/sway ~/.config/kanshi ~/.config/swaync ~/.config/i3status
 
 # A real file here is the pre-repo config, so keep it. Reruns hit a symlink and
 # skip this.
@@ -43,10 +43,24 @@ link() {
 link "$here/dotfiles/sway/config" ~/.config/sway/config
 link "$here/dotfiles/sway/variables.conf" ~/.config/sway/variables.conf
 link "$here/dotfiles/sway/config.d" ~/.config/sway/config.d
+# The lock script. 40-autostart.conf's swayidle hooks name ~/.config/sway/lock
+# four times, so a host without this link gets a session that never locks and
+# says nothing about it. It was symlinked by hand here for a year before anyone
+# noticed it wasn't in this list.
+link "$here/scripts/swaylock" ~/.config/sway/lock
+link "$here/scripts/idle" ~/.config/sway/idle
+link "$here/scripts/live" ~/.config/sway/live
 link "$here/scripts/idle-suspend" ~/.config/sway/idle-suspend
+link "$here/scripts/display" ~/.config/sway/display
+link "$here/scripts/present" ~/.config/sway/present
 link "$here/scripts/notifyd" ~/.config/sway/notifyd
+link "$here/scripts/statusbar" ~/.config/sway/statusbar
 link "$here/scripts/wallpaper" ~/.config/sway/wallpaper
 link "$host_dir/sway.conf" ~/.config/sway/host.conf
 link "$host_dir/kanshi" ~/.config/kanshi/config
+# i3status only reads a config file, never a flag, so pinning its output format
+# for ~/.config/sway/statusbar takes a whole file. This one is Fedora's
+# /etc/i3status.conf plus that single line.
+link "$here/dotfiles/i3status/config" ~/.config/i3status/config
 link "$here/dotfiles/swaync/config.json" ~/.config/swaync/config.json
 link "$here/dotfiles/swaync/style.css" ~/.config/swaync/style.css

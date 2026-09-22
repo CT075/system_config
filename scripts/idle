@@ -1,0 +1,98 @@
+#!/bin/bash
+# The swayidle invocation, in a script so two callers can share one copy of it.
+#
+# This used to be an `exec swayidle ...` block in sway's 40-autostart.conf, and
+# it moved here when presentation mode arrived. ~/.config/sway/present stops
+# swayidle to hold the screen up during a talk and has to start the same thing
+# again afterwards, and two hand-synced copies of a nine-line argument list is
+# how you end up presenting to a lock screen six months from now.
+#
+# `start` is idempotent: it is a no-op when swayidle is already up. That is what
+# makes it safe on a sway reload, where 40-autostart.conf's exec_always runs it
+# again, and safe as the recovery path if presentation mode died between its
+# stop and its start.
+#
+# The chain is lock at fifteen minutes, screen off half a minute later, suspend
+# to RAM a minute after the lock. Hibernate is not in it and cannot be: Secure
+# Boot is deployed on this host, so kernel lockdown sits at 'integrity',
+# /sys/power/disk reads [disabled], and swap is zram only.
+#
+# Order matters. The lock script screenshots each output, so it has to run while
+# the outputs are still lit, which puts it ahead of the power off.
+#
+# -w makes swayidle wait for each hook command to exit before carrying on, which
+# is what keeps the sleep inhibitor held until the lock is actually up. It only
+# works if the hooks return: the lock script forks swaylock and exits rather than
+# waiting for the unlock, because a hook that blocks until the user comes back
+# blocks swayidle itself, and a blocked swayidle drops no events, it queues them.
+# They then all run at once when it unblocks, which is how unlocking used to be
+# followed half a minute later by another lock.
+#
+# idle-suspend is the only thing here that suspends, and it no longer checks AC
+# first, so a docked session suspends as well. ~/.config/sway/live is the switch
+# for the long build that needs holding up; both are documented in the script.
+#
+# Closing the lid is logind's business rather than swayidle's, and it suspends at
+# once whether docked or not: HandleLidSwitchDocked and
+# HandleLidSwitchExternalPower are both set to suspend in
+# /etc/systemd/logind.conf.d/90-lid.conf.
+#
+# The lock/unlock hooks are what make `loginctl lock-session` work. They go away
+# with the daemon, which is why locking the session does nothing while
+# presentation mode is on.
+
+set -eu
+
+usage() {
+  cat >&2 <<USAGE
+usage: idle start | stop | restart | status
+
+  start    run swayidle if it isn't already. Called from sway's
+           40-autostart.conf and from \`present off\`.
+  stop     kill it. Called from \`present on\`; nothing else should.
+  restart  stop then start, for picking up an edit to this file without a
+           sway reload.
+  status   whether it's running, and with what.
+USAGE
+  exit 2
+}
+
+start() {
+  # -x so a stray `swayidle-something` in the process table doesn't read as a
+  # running daemon.
+  if pgrep -x swayidle >/dev/null 2>&1; then
+    return 0
+  fi
+
+  # setsid detaches it from this script's process group. Without it, a caller
+  # that gets killed takes swayidle with it, which is exactly the case
+  # presentation mode's `off` path is trying to recover from.
+  setsid swayidle -w \
+    timeout 900 '~/.config/sway/lock' \
+    timeout 930 'swaymsg "output * power off"' \
+      resume 'swaymsg "output * power on"' \
+    timeout 960 '~/.config/sway/idle-suspend' \
+    before-sleep '~/.config/sway/lock' \
+    lock '~/.config/sway/lock' \
+    unlock 'pkill -x swaylock' \
+    >/dev/null 2>&1 &
+}
+
+stop() {
+  pkill -x swayidle 2>/dev/null || true
+}
+
+case ${1:-} in
+  start)   start ;;
+  stop)    stop ;;
+  restart) stop; sleep 0.2; start ;;
+  status)
+    if pgrep -x swayidle >/dev/null 2>&1; then
+      echo "running:"
+      pgrep -ax swayidle
+    else
+      echo "not running"
+    fi
+    ;;
+  *) usage ;;
+esac

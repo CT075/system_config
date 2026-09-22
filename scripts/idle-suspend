@@ -1,9 +1,29 @@
 #!/bin/sh
-# Suspend on idle, but only when running on battery.
+# Suspend an idle session to RAM, one minute after the screen locks. The timings
+# live in ~/.config/sway/idle, which is the only copy of the swayidle line.
 #
-# Plugged in, an idle session is left alone so long unattended builds survive.
-# On battery, idling is how the laptop ends up flat: nothing else suspends it,
-# and there is no hibernate fallback (Secure Boot lockdown, zram-only swap).
+# This used to suspend only on battery, leaving a plugged-in idle session alone
+# so unattended builds survived. That exemption is gone, because a suspend step
+# that never fires while docked isn't a suspend step. To get it back, put this
+# line back at the top:
+#
+#   [ "$(cat /sys/class/power_supply/AC/online 2>/dev/null)" = 0 ] || exit 0
+#
+# Hibernate is deliberately not attempted. Secure Boot is deployed on this host,
+# so kernel lockdown sits at 'integrity' and /sys/power/disk reads [disabled];
+# swap is zram only, which there is no hibernating into anyway.
 
-[ "$(cat /sys/class/power_supply/AC/online 2>/dev/null)" = 0 ] || exit 0
+# Live mode holds the suspend off, for the long build that used to need wrapping
+# in `systemd-inhibit --what=sleep`. Only the suspend is skipped: by the time
+# this runs the screen has locked and blanked, and it stays that way. That is
+# the whole difference between live mode and presentation mode, which stops
+# swayidle outright and so holds the screen up too. See ~/.config/sway/live.
+[ -e "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/live" ] && exit 0
+
+# A block inhibitor still works, and still wins, for the one-off case:
+#
+#   systemd-inhibit --what=sleep --why='long build' make -j16
+#
+# systemctl(1) checks inhibitors by default, so logind refuses the suspend while
+# a lock like that is held.
 exec systemctl suspend
