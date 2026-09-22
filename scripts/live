@@ -1,0 +1,80 @@
+#!/bin/bash
+# Live mode: keep the machine awake without keeping the screen unlocked.
+#
+# Bound to $mod+Shift+i in config.d/60-bindings-session.conf.
+#
+# The case for it is a long build. The idle chain suspends to RAM a minute after
+# the screen locks, which pauses the build until somebody comes back, and the
+# alternative was remembering to wrap every long command by hand:
+#
+#   systemd-inhibit --what=sleep --why='long build' make -j16
+#
+# Presentation mode already holds the machine up, but it does it by stopping
+# swayidle outright, so the screen never locks either. That is the right trade
+# for a talk and the wrong one for a build running while you walk away from the
+# laptop. This mode is the narrow version: swayidle keeps running, the screen
+# locks on time and still blanks, and only the suspend step is suppressed.
+#
+# Suppression is a state file rather than an idle-inhibit lock, because the
+# thing being suppressed is a script we own. ~/.config/sway/idle-suspend checks
+# for the file and returns early, so there is no daemon to keep alive and
+# nothing left holding a lock if this script is killed between its on and off.
+#
+# A LIVE block appears on the swaybar, spliced in by ~/.config/sway/statusbar
+# beside presentation mode's. That strip is the only reminder there is, which is
+# why it isn't optional: a mode that quietly stops the laptop sleeping is how a
+# battery ends up flat in a bag.
+
+set -eu
+
+# Runtime rather than state: live mode should never survive a reboot, and a
+# stale file would leave the strip claiming something that isn't true.
+#
+# The path is shared with ~/.config/sway/statusbar and
+# ~/.config/sway/idle-suspend, the only other things that touch it.
+STATE=${XDG_RUNTIME_DIR:?}/live
+
+usage() {
+  cat >&2 <<USAGE
+usage: live on | off | toggle | status
+
+  on       hold off the idle suspend. The screen still locks.
+  off      let the idle chain suspend again.
+  toggle   bound to \$mod+Shift+i.
+  status   whether it's on, and what else is holding the session up.
+USAGE
+  exit 2
+}
+
+# Force i3status to emit now, so the flag lands on the keystroke instead of up
+# to `interval` seconds later. Same signal as $refresh_i3status in sway's
+# variables.conf, and the same reason ~/.config/sway/present sends it.
+refresh() { pkill -USR1 -x i3status 2>/dev/null || true; }
+
+is_on() { [ -e "$STATE" ]; }
+
+on() {
+  : > "$STATE"
+  refresh
+  notify-send -a live -t 4000 "live mode on" \
+    "idle suspend held off, screen still locks" >/dev/null 2>&1 || true
+}
+
+off() {
+  rm -f "$STATE"
+  refresh
+  notify-send -a live -t 4000 "live mode off" \
+    "the idle chain will suspend again" >/dev/null 2>&1 || true
+}
+
+case ${1:-} in
+  on)     is_on || on ;;
+  off)    off ;;
+  toggle) if is_on; then off; else on; fi ;;
+  status)
+    if is_on; then echo "live mode:  on"; else echo "live mode:  off"; fi
+    echo "swayidle:   $(pgrep -x swayidle >/dev/null 2>&1 && echo running || echo stopped)"
+    echo "presenting: $([ -e "${XDG_RUNTIME_DIR:?}/presenting" ] && echo on || echo off)"
+    ;;
+  *) usage ;;
+esac

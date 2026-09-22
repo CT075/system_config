@@ -1,0 +1,66 @@
+# i3status configuration file.
+# see "man i3status" for documentation.
+#
+# This is Fedora's /etc/i3status.conf with one line added, `output_format`.
+# It exists at all because ~/.config/i3status/config outranks the system file,
+# and the blocks below are the system defaults verbatim so that adopting this
+# file changes nothing about what the bar says. `diff /etc/i3status.conf
+# ~/.config/i3status/config` should show only the output_format hunk.
+
+# It is important that this file is edited as UTF-8.
+# The following line should contain a sharp s:
+# ß
+# If the above line is not correctly displayed, fix your editor first!
+
+general {
+        # Pinned rather than auto-detected. i3status guesses its output format
+        # from the name of its parent process, and it knows swaybar, so the bar
+        # got JSON for free right up until ~/.config/sway/statusbar was slipped
+        # in between the two. Auto-detect sees "statusbar", recognises nothing,
+        # and falls back to plain text, which costs every block its colours
+        # with no error anywhere. Saying it outright removes the guess.
+        output_format = "i3bar"
+        colors = true
+        interval = 5
+}
+
+order += "ipv6"
+order += "wireless _first_"
+order += "ethernet _first_"
+order += "battery all"
+order += "disk /"
+order += "load"
+order += "memory"
+order += "tztime local"
+
+wireless _first_ {
+        format_up = "W: (%quality at %essid) %ip"
+        format_down = "W: down"
+}
+
+ethernet _first_ {
+        format_up = "E: %ip (%speed)"
+        format_down = "E: down"
+}
+
+battery all {
+        format = "%status %percentage %remaining"
+}
+
+disk "/" {
+        format = "%avail"
+}
+
+load {
+        format = "%1min"
+}
+
+memory {
+        format = "%used | %available"
+        threshold_degraded = "1G"
+        format_degraded = "MEMORY < %available"
+}
+
+tztime local {
+        format = "%Y-%m-%d %H:%M:%S"
+}

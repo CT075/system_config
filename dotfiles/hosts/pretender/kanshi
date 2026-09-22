@@ -1,11 +1,55 @@
 # Output geometry. 20-output.conf restarts kanshi.service on every sway
 # reload, so this file is the only place positions are set.
+#
+# Profile order is load-bearing: kanshi applies the first profile whose outputs
+# are all connected, so `adhoc` has to stay last or it would shadow the two
+# real setups.
+#
+# Every profile execs ~/.config/sway/display hotplug. On the named profiles
+# that is only there to end presentation mode when the projector comes out; on
+# `adhoc` it is what actually lays the unknown screen out, since kanshi has no
+# way to express "above, whatever height it turns out to be".
 
 profile docked {
   output "Dell Inc. DELL P2422H D599FQ3" enable mode 1920x1080@60Hz position 0,0
   output "AU Optronics 0xF99A Unknown" enable mode 1920x1200@60Hz position 1920,0
+  exec ~/.config/sway/display hotplug known
 }
 
 profile undocked {
   output "AU Optronics 0xF99A Unknown" enable mode 1920x1200@60Hz position 0,0
+  exec ~/.config/sway/display hotplug known
+}
+
+# The laptop plus exactly one screen nobody wrote a profile for. `output "*"`
+# matches any one output, which is the whole trick.
+#
+# It has to be `output "*"` and not `...output "*"`. The `...` form matches any
+# number of outputs including zero, so a profile using it also matches the
+# laptop on its own, and kanshi keeps the active profile for as long as it
+# still matches rather than re-selecting the best one. That makes the catch-all
+# sticky: unplug the projector and kanshi sits on `adhoc` forever instead of
+# falling back to `undocked`, and the exec that ends presentation mode never
+# runs. Writing both forms in one profile is a parse error, "duplicate output
+# '*' in profile", and kanshi keeps running on the last config that loaded, so
+# the symptom is the old behaviour rather than an obvious failure. Check
+# `journalctl --user -u kanshi` after editing this file.
+#
+# The cost is that two or more unknown screens match nothing at all. kanshi
+# can't spell "one or more" and repeating `output "*"` is the same parse error,
+# so sway's own defaults place them and $mod+d still works, just without the
+# notification saying so.
+#
+# The laptop panel is named by connector here and by make/model/serial above.
+# Both work; the description is what the docked profile needs because the
+# Dell's connector drifts across reboots, and eDP-1 never does.
+#
+# Positions are deliberately not set for the wildcard. kanshi can only place an
+# output at a coordinate it was told at config time, and putting an unknown
+# screen *above* the laptop means offsetting it by its own height, which isn't
+# known until it's connected. The exec does that part.
+profile adhoc {
+  output eDP-1 enable position 0,0
+  output "*" enable
+  exec ~/.config/sway/display hotplug adhoc
 }

@@ -1,0 +1,238 @@
+#!/bin/bash
+# Ad-hoc monitor handling: what to do with a screen the config has never seen.
+#
+# Known setups are kanshi's job. ~/.config/kanshi/config names the docked
+# monitors by make/model/serial and gives them exact positions, and that keeps
+# working. This script is for the other case, the classroom projector plugged
+# in ninety seconds before a talk, where no profile can have been written in
+# advance because nobody knew what the room had.
+#
+# Two entry points:
+#
+#   hotplug   kanshi's `exec` fires it when a profile activates. On the
+#             catch-all `adhoc` profile it lays the new screen out; on a named
+#             profile it only checks whether presentation mode should end.
+#   menu      $mod+d. Puts sway in the `display` binding mode, where m/e/x/i
+#             pick a layout. See config.d/66-bindings-display.conf.
+#
+# Positions are set through swaymsg rather than by rewriting kanshi's config,
+# which works because kanshi only applies a profile when the matched profile
+# *changes*. It does not re-assert geometry when something else moves an
+# output, so a position set here survives. If that ever stops being true the
+# symptom is this script's layout snapping back a moment after it lands, and
+# the fix is to drop the `adhoc` profile and drive hotplug off
+# `swaymsg -t subscribe '["output"]'` instead.
+#
+# A note on syntax that costs an hour to rediscover: `swaymsg output X position
+# 0 -50` fails, because swaymsg takes the -50 for an option, and the comma form
+# `position 0,-50` is rejected outright. Passing the whole command as one string
+# is the form that accepts negative coordinates, which `up` and `left` need.
+
+set -eu
+
+# Built-in panels. A laptop's own screen is on one of these connector prefixes
+# and an external never is, which is the only reliable way to tell them apart:
+# make/model/serial says "AU Optronics 0xF99A Unknown" for this machine's panel
+# and nothing in that is marked as internal.
+INTERNAL_RE='^(eDP|LVDS|DSI)-'
+
+PRESENT=~/.config/sway/present
+
+usage() {
+  cat >&2 <<EOF
+usage: display <command>
+
+  hotplug known|adhoc   called by kanshi's exec, not by hand.
+  menu                  enter sway's \`display\` binding mode, if there's
+                        anything to choose about. Bound to \$mod+d.
+  auto                  the default ad-hoc layout: external above internal.
+  mirror                duplicate the internal panel onto the external.
+  extend up|down|left|right
+  external              external only, internal off.
+  internal              internal only, externals off.
+  status                what is connected, enabled and where.
+  which internal|externals
+                        name the panels, for other scripts to build on.
+EOF
+  exit 2
+}
+
+note() {
+  notify-send -a display -t "${2:-4000}" "$1" >/dev/null 2>&1 || true
+}
+
+outs() { swaymsg -t get_outputs; }
+
+# The built-in panel, or the first output on a machine that hasn't got one. A
+# desktop makes "internal" meaningless, and picking the first output at least
+# makes `display internal` mean "just the one screen" instead of erroring.
+internal() {
+  outs | jq -r --arg re "$INTERNAL_RE" \
+    'first(.[] | select(.name | test($re)) | .name) // .[0].name // ""'
+}
+
+externals() {
+  outs | jq -r --arg n "$(internal)" '.[] | select(.name != $n) | .name'
+}
+
+# Logical pixels, after scale and transform, which is the space `position`
+# works in. A disabled output reports 0x0, so anything that needs real numbers
+# has to enable first and read second.
+geom() {
+  outs | jq -r --arg n "$1" '.[] | select(.name==$n) | "\(.rect.width) \(.rect.height)"'
+}
+
+on()    { swaymsg "output \"$1\" enable" >/dev/null; }
+off()   { swaymsg "output \"$1\" disable" >/dev/null; }
+place() { swaymsg "output \"$1\" position $2 $3" >/dev/null; }
+
+unmirror() { pkill -x wl-mirror 2>/dev/null || true; }
+
+# Put the external on the given side of the internal, with the internal pinned
+# at the origin. Both get enabled first: their sizes are only readable once
+# they are, and `up` and `left` are expressed as negative offsets of the
+# external's own width or height, so guessing would put a gap or an overlap
+# between the two.
+side() {
+  local dir=$1 int ext iw ih ew eh
+  int=$(internal)
+  ext=$(externals | head -n1)
+
+  if [ -z "$ext" ]; then
+    note "no external display"
+    return 1
+  fi
+
+  unmirror
+  on "$int"
+  on "$ext"
+  read -r iw ih <<<"$(geom "$int")"
+  read -r ew eh <<<"$(geom "$ext")"
+
+  place "$int" 0 0
+  case $dir in
+    up)    place "$ext" 0 "-$eh" ;;
+    down)  place "$ext" 0 "$ih" ;;
+    left)  place "$ext" "-$ew" 0 ;;
+    right) place "$ext" "$iw" 0 ;;
+    *)     usage ;;
+  esac
+}
+
+case ${1:-} in
+  # Only the catch-all profile lays anything out. On `docked` and `undocked`
+  # kanshi has already placed the screens exactly, and re-deriving a layout on
+  # top of that would fight the thing that knows better.
+  hotplug)
+    if [ -z "$(externals)" ]; then
+      # The projector is out of the socket and the talk is over, so drop
+      # presentation mode rather than leaving the machine unlockable. This is
+      # the main reason the named profiles call this script at all.
+      unmirror
+      [ -x "$PRESENT" ] && "$PRESENT" off --if-on || true
+    fi
+    [ "${2:-}" = adhoc ] && exec "$0" auto
+    ;;
+
+  auto)
+    n=$(externals | grep -c . || true)
+    case $n in
+      0) ;;
+      1)
+        side up
+        note "external display above. Super+d to change." 5000
+        ;;
+      *)
+        note "$n external displays, left as-is. Super+d to choose." 8000
+        ;;
+    esac
+    ;;
+
+  menu)
+    if [ -z "$(externals)" ]; then
+      note "no external display"
+      exit 0
+    fi
+    swaymsg mode display >/dev/null
+    ;;
+
+  mirror)
+    if ! command -v wl-mirror >/dev/null 2>&1; then
+      note "wl-mirror isn't installed; sudo dnf install wl-mirror" 8000
+      exit 1
+    fi
+    int=$(internal)
+    ext=$(externals | head -n1)
+    [ -n "$ext" ] || { note "no external display"; exit 1; }
+
+    # Mirroring still needs somewhere to put the mirror window, so the external
+    # goes to the right of the internal as an ordinary second screen and then
+    # wl-mirror opens fullscreen on it.
+    side right
+    # setsid so the mirror outlives this script and the sway `exec` that ran it.
+    setsid wl-mirror --fullscreen-output "$ext" "$int" >/dev/null 2>&1 &
+    note "mirroring $int onto $ext"
+    ;;
+
+  extend)
+    side "${2:-right}"
+    ;;
+
+  external)
+    int=$(internal)
+    mapfile -t exts < <(externals)
+    [ "${#exts[@]}" -gt 0 ] || { note "no external display"; exit 1; }
+
+    unmirror
+    # Enable and lay them out before the internal goes dark. Disabling the last
+    # enabled output leaves sway with nowhere to draw, so the order here is the
+    # safety property, not a preference.
+    x=0
+    for e in "${exts[@]}"; do
+      on "$e"
+      place "$e" "$x" 0
+      read -r w _ <<<"$(geom "$e")"
+      x=$((x + w))
+    done
+    off "$int"
+    note "external only"
+    ;;
+
+  internal)
+    int=$(internal)
+    unmirror
+    on "$int"
+    place "$int" 0 0
+    while read -r e; do [ -n "$e" ] && off "$e"; done < <(externals)
+    note "internal only"
+    ;;
+
+  # The one query other scripts need, exposed so they don't each grow their own
+  # copy of INTERNAL_RE. ~/.config/sway/present uses it to pin the presentation
+  # indicator to the panel the audience can't see.
+  which)
+    case ${2:-} in
+      internal)  internal ;;
+      externals) externals ;;
+      *)         usage ;;
+    esac
+    ;;
+
+  status)
+    outs | jq -r '
+      ["OUTPUT","ON","POSITION","SIZE","DESCRIPTION"],
+      (.[] | [
+        .name,
+        (if .active then "yes" else "no" end),
+        "\(.rect.x),\(.rect.y)",
+        "\(.rect.width)x\(.rect.height)",
+        "\(.make) \(.model) \(.serial)"
+      ]) | @tsv' | column -t -s$'\t'
+    echo
+    echo "internal:  $(internal)"
+    echo "externals: $(externals | tr '\n' ' ')"
+    echo "kanshi:    $(kanshictl status 2>/dev/null | head -n1 || echo unknown)"
+    ;;
+
+  *) usage ;;
+esac
