@@ -29,6 +29,13 @@
 # composited output. That is a deliberate trade for not running a second
 # swaybar whose entire job is one word.
 #
+# Live mode (~/.config/sway/live) is the narrow version of this: it suppresses
+# only the suspend step and leaves swayidle up, so the screen still locks on
+# time. This mode does everything it does and more, so the two are exclusive and
+# `on` turns live mode off. Quietly, because live's exit notice promises the
+# idle chain will suspend again, and stopping swayidle makes that untrue. `off`
+# returns to the plain idle chain rather than back to live mode.
+#
 # Forgetting to turn it off is the real failure, so there are two backstops.
 # The strip is one. The other is ~/.config/sway/display hotplug, which kanshi
 # runs when a profile activates: unplug the projector and the `undocked`
@@ -46,6 +53,7 @@ STATE=${XDG_RUNTIME_DIR:?}/presenting
 
 IDLE=~/.config/sway/idle
 NOTIFYD=~/.config/sway/notifyd
+LIVE=~/.config/sway/live
 
 usage() {
   cat >&2 <<EOF
@@ -70,6 +78,9 @@ is_on() { [ -e "$STATE" ]; }
 
 on() {
   : > "$STATE"
+
+  # A no-op unless live mode was on. See the note at the top for the --quiet.
+  "$LIVE" off --if-on --quiet >/dev/null 2>&1 || true
 
   "$IDLE" stop
   "$NOTIFYD" dnd on >/dev/null 2>&1 || true
@@ -103,6 +114,7 @@ case ${1:-} in
     if is_on; then echo "presentation mode: on"; else echo "presentation mode: off"; fi
     echo "swayidle:  $(pgrep -x swayidle >/dev/null 2>&1 && echo running || echo stopped)"
     echo "dnd:       $("$NOTIFYD" dnd status 2>/dev/null || echo unknown)"
+    echo "live:      $([ -e "${XDG_RUNTIME_DIR:?}/live" ] && echo on || echo off)"
     echo "wl-mirror: $(pgrep -x wl-mirror >/dev/null 2>&1 && echo running || echo stopped)"
     ;;
   *) usage ;;

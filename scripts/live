@@ -15,6 +15,13 @@
 # laptop. This mode is the narrow version: swayidle keeps running, the screen
 # locks on time and still blanks, and only the suspend step is suppressed.
 #
+# Which makes presentation mode a strict superset, so the two are exclusive.
+# Turning this on drops presentation mode and turning that on drops this, and
+# turning either off lands back on the plain idle chain rather than on the other
+# mode. Running them stacked would work, but the strip would then claim two
+# modes for one set of behaviour, and `off` would have to guess which of the two
+# a keystroke meant.
+#
 # Suppression is a state file rather than an idle-inhibit lock, because the
 # thing being suppressed is a script we own. ~/.config/sway/idle-suspend checks
 # for the file and returns early, so there is no daemon to keep alive and
@@ -34,12 +41,17 @@ set -eu
 # ~/.config/sway/idle-suspend, the only other things that touch it.
 STATE=${XDG_RUNTIME_DIR:?}/live
 
+PRESENT=~/.config/sway/present
+
 usage() {
   cat >&2 <<USAGE
-usage: live on | off | toggle | status
+usage: live on | off [--if-on] [--quiet] | toggle | status
 
-  on       hold off the idle suspend. The screen still locks.
-  off      let the idle chain suspend again.
+  on       hold off the idle suspend. The screen still locks. Drops
+           presentation mode if it was on.
+  off      let the idle chain suspend again. --if-on makes it a no-op when
+           live mode isn't on and --quiet drops the notification, which is
+           what \`present on\` wants.
   toggle   bound to \$mod+Shift+i.
   status   whether it's on, and what else is holding the session up.
 USAGE
@@ -54,6 +66,10 @@ refresh() { pkill -USR1 -x i3status 2>/dev/null || true; }
 is_on() { [ -e "$STATE" ]; }
 
 on() {
+  # The superset goes first. It announces its own exit, which is the right
+  # thing to see when this was a fat-fingered $mod+Shift+i during a talk.
+  "$PRESENT" off --if-on || true
+
   : > "$STATE"
   refresh
   notify-send -a live -t 4000 "live mode on" \
@@ -61,15 +77,36 @@ on() {
 }
 
 off() {
+  quiet=
+  ifon=
+  for arg in "$@"; do
+    case $arg in
+      --if-on) ifon=1 ;;
+      --quiet) quiet=1 ;;
+      *)       usage ;;
+    esac
+  done
+
+  if [ -n "$ifon" ] && ! is_on; then
+    return 0
+  fi
+
   rm -f "$STATE"
   refresh
+
+  # `present on` passes --quiet, because the line below promises the idle chain
+  # will suspend again and stopping swayidle outright makes that untrue.
+  if [ -n "$quiet" ]; then
+    return 0
+  fi
+
   notify-send -a live -t 4000 "live mode off" \
     "the idle chain will suspend again" >/dev/null 2>&1 || true
 }
 
 case ${1:-} in
   on)     is_on || on ;;
-  off)    off ;;
+  off)    off "${@:2}" ;;
   toggle) if is_on; then off; else on; fi ;;
   status)
     if is_on; then echo "live mode:  on"; else echo "live mode:  off"; fi
