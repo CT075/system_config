@@ -1,0 +1,34 @@
+# Sourced by /usr/bin/start-sway, with `set -o allexport`, immediately before it
+# execs sway. Fedora's wrapper offers this file for environment variables. What
+# it is load-bearing for here is ordering: it is the last user-owned hook that
+# runs before the compositor reads a single line of config.
+#
+# What runs is the linker. scripts/link-sway creates the seventeen symlinks the
+# config points at, and the config names them without ever checking: the bar's
+# status_command is ~/.config/sway/statusbar, the lock timeout is
+# ~/.config/sway/idle, and $mod+d, $mod+Shift+d and $mod+Shift+i are display,
+# present and live. A link that was never created doesn't announce itself. It
+# fails at the moment sway tries to use it, which for a keybinding is whenever
+# someone next presses the key. Five had drifted this way before a dead bar
+# made it obvious, all five added by a single commit that nobody reran the linker
+# after.
+#
+# Here rather than only an exec_always in config.d, for two reasons. config.d
+# is itself one of the links, so a config.d that went missing takes every
+# exec_always in it down with it and there is nothing left to do the repair.
+# And swaybar gives a missing status_command a few attempts and then stops, so
+# a link that appears once sway is already parsing is a link that arrives too
+# late for the bar. 40-autostart.conf runs it again anyway, to catch a pull
+# that lands mid-session.
+#
+# Nothing is exported from here, so allexport has nothing to catch. Output goes
+# to the journal under the link-sway tag rather than into the session log,
+# where `journalctl --user -t link-sway` can find it; in steady state the
+# linker prints nothing, so anything there at all is a link that moved.
+#
+# A failure is deliberately not fatal. start-sway runs without `set -e` and
+# ignores what this file returns, which is the behaviour we want: a stale
+# symlink costs one binding, and a session that refuses to start costs the
+# whole login.
+"${SYSBASE_HOME:-$HOME/sys_base}/scripts/link-sway" 2>&1 |
+  systemd-cat -t link-sway -p notice

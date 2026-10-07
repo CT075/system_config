@@ -1,0 +1,9 @@
+#!/bin/sh
+# Branch switch. See hooks/after-update.
+#
+# argv is (old HEAD, new HEAD, flag), and the flag is 1 for a branch checkout
+# and 0 for a file checkout. `git checkout -- some/file` can't change the link
+# list in a way worth relinking for, so only the branch case is passed on.
+[ "$3" = 1 ] || exit 0
+
+exec "$(dirname "$0")/after-update"

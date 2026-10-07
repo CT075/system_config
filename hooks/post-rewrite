@@ -1,0 +1,6 @@
+#!/bin/sh
+# `git pull --rebase`, and `git rebase` generally. See hooks/after-update.
+#
+# Takes the rewrite kind on argv; both `rebase` and `amend` can move which
+# commit is checked out, so neither is filtered out.
+exec "$(dirname "$0")/after-update"
