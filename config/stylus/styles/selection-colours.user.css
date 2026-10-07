@@ -1,0 +1,21 @@
+/* ==UserStyle==
+@name           ?
+@namespace      sys_base
+@version        1.0.0
+==/UserStyle== */
+
+@layer selection-fallback {
+  /*
+  ::selection {
+    background-color: #8c9eff;
+    color: #0d1033;
+    text-shadow: none;
+  }
+  */
+  ::selection {
+    background-color: #4db6ac;
+    color: #062b28;
+    text-shadow: none;
+  }
+}
+

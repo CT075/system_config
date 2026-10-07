@@ -1,0 +1,12 @@
+/* ==UserStyle==
+@name           example
+@namespace      sys_base
+@version        1.0.0
+@description    what this style fixes
+==/UserStyle== */
+
+@-moz-document domain("example.com") {
+  body {
+    /* ... */
+  }
+}

@@ -1,0 +1,101 @@
+#!/bin/bash
+# Split a Stylus JSON export into one .user.css per style under
+# config/stylus/styles.
+#
+# Stylus keeps everything in the extension's IndexedDB, which the repo has no
+# way to read, so the export button is the only way out. Usercss styles come
+# back out verbatim; the older section-based ones get a metadata block
+# synthesised over their @-moz-document rules, since Stylus won't install a
+# file without @name, @namespace and @version.
+#
+# The export is not a bare list of styles. Element 0 is a blob of Stylus's own
+# settings, and it's dropped here, along with anything else that doesn't carry
+# either a sourceCode string or a sections array.
+#
+# Nothing written here carries @updateURL. The usercss parser only accepts http
+# and https there, so a file: URL is a parse error, and an upstream https one
+# would send Stylus back to userstyles.world for updates instead of here. The
+# link to this directory gets made at install time by the file: URL you install
+# from, which Stylus stores separately from the metadata.
+#
+# Whether a style was enabled doesn't survive the trip. That lives in Stylus,
+# not in the file, so anything disabled comes back on.
+#
+# Stylus > Manage > Export writes the JSON. Run this on it, then
+# scripts/stylus-sync to get the install URLs.
+
+set -eu
+
+if [ $# -ne 1 ]; then
+  echo "usage: $(basename "$0") <stylus-export.json>" >&2
+  exit 2
+fi
+
+export_json=$1
+styles=$(cd "$(dirname "$0")/../config/stylus/styles" && pwd)
+
+slugify() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' \
+    | sed 's/[^a-z0-9]\+/-/g; s/^-//; s/-$//'
+}
+
+render='
+def name: .customName // .name // "";
+
+def matchers:
+  ((.domains // []) | map("domain(\"\(.)\")"))
+  + ((.urls // []) | map("url(\"\(.)\")"))
+  + ((.urlPrefixes // []) | map("url-prefix(\"\(.)\")"))
+  + ((.regexps // []) | map("regexp(\"\(.)\")"));
+
+def as_moz:
+  . as $s
+  | matchers as $m
+  | if ($m | length) == 0 then $s.code
+    else "@-moz-document \($m | join(", ")) {\n\($s.code)\n}"
+    end;
+
+def without_update_url:
+  sub("[ \t]*@updateURL[ \t]*[^\n]*\n"; "");
+
+def synthesised:
+  "/* ==UserStyle==\n"
+  + "@name           \(name)\n"
+  + "@namespace      sys_base\n"
+  + "@version        1.0.0\n"
+  + "==/UserStyle== */\n\n"
+  + ((.sections // []) | map(as_moz) | join("\n\n"))
+  + "\n";
+
+.[$i]
+| if .sourceCode then .sourceCode | without_update_url else synthesised end
+'
+
+only_styles='[ .[]
+  | select((.sourceCode | type) == "string" or (.sections | type) == "array") ]'
+
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
+jq "$only_styles" "$export_json" > "$tmp"
+
+count=$(jq length "$tmp")
+for i in $(seq 0 $((count - 1))); do
+  name=$(jq -r ".[$i] | .customName // .name // \"\"" "$tmp")
+  slug=$(slugify "$name")
+
+  # A style can be called "?" or renamed to nothing but punctuation, and that
+  # leaves no filename behind. Fall back to the first domain it matches, then
+  # to Stylus's own id.
+  if [ -z "$slug" ]; then
+    slug=$(slugify "$(jq -r \
+      ".[$i] | ([.sections[]?.domains[]?] | first) // \"style-\(.id)\"" "$tmp")")
+  fi
+
+  out=$styles/$slug.user.css
+  if [ -e "$out" ]; then
+    out=$styles/$slug-$i.user.css
+  fi
+
+  jq -r --argjson i "$i" "$render" "$tmp" > "$out"
+  printf '%s\t%s\n' "$out" "$name"
+done
