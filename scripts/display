@@ -7,13 +7,15 @@
 # in ninety seconds before a talk, where no profile can have been written in
 # advance because nobody knew what the room had.
 #
-# Two entry points:
+# Three entry points:
 #
 #   hotplug   kanshi's `exec` fires it when a profile activates. On the
 #             catch-all `adhoc` profile it lays the new screen out; on a named
 #             profile it only checks whether presentation mode should end.
 #   menu      $mod+d. Puts sway in the `display` binding mode, where m/e/x/i
 #             pick a layout. See config.d/66-bindings-display.conf.
+#   focus     $mod+w/e/r and their Shift variants, via
+#             config.d/64-bindings-output.conf. See "Manual layouts" below.
 #
 # Positions are set through swaymsg rather than by rewriting kanshi's config,
 # which works because kanshi only applies a profile when the matched profile
@@ -27,6 +29,38 @@
 # 0 -50` fails, because swaymsg takes the -50 for an option, and the comma form
 # `position 0,-50` is rejected outright. Passing the whole command as one string
 # is the form that accepts negative coordinates, which `up` and `left` need.
+#
+# Manual layouts, and why $mod+e and $mod+r change meaning
+# --------------------------------------------------------
+#
+# $out_left/$out_main/$out_right in the host file name real panels, and on a
+# machine kanshi has a profile for they are the right answer: they encode which
+# screen has the keyboard in front of it, which sway cannot be asked. On a
+# projector nobody wrote a profile for they name nothing at all, and the keys
+# are dead exactly when reaching for the mouse is most expensive.
+#
+# So the three keys go through `focus` and it picks between the two. Normally
+# it uses the literal the config passed it and behaves as it always has. Once a
+# layout has been chosen by hand from the $mod+d menu, the literals are known
+# to be wrong about the new screen, and the keys switch to what is actually
+# knowable:
+#
+#   $mod+e  the internal panel
+#   $mod+r  the external
+#   $mod+w  nothing, with a note saying so
+#
+# Only the layouts that leave two screens showing different things turn this
+# on: `extend` in any direction, `external`, and the `auto` that hotplug runs.
+# `mirror` and `internal` clear it, because both screens showing one thing
+# makes "jump to the other one" meaningless, and the literals are no worse than
+# anything else at that point. `hotplug known` clears it too: kanshi has just
+# asserted a layout the host file was written against.
+#
+# The flag is deliberately not derived from the output topology. "Is there an
+# active external?" is true when docked at a desk, where the literals are
+# correct and silently swapping the keys would be the wrong answer. What the
+# flag records is that somebody said "lay this out for me", which is the thing
+# that makes the host file's opinion stale.
 
 set -eu
 
@@ -38,6 +72,11 @@ INTERNAL_RE='^(eDP|LVDS|DSI)-'
 
 PRESENT=~/.config/sway/present
 
+# Runtime rather than state: a hand-picked layout should not outlive the
+# session that picked it, and a stale file here would leave $mod+e and $mod+r
+# pointing somewhere the host file disagrees with for no visible reason.
+MANUAL=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/display-manual
+
 usage() {
   cat >&2 <<EOF
 usage: display <command>
@@ -45,6 +84,11 @@ usage: display <command>
   hotplug known|adhoc   called by kanshi's exec, not by hand.
   menu                  enter sway's \`display\` binding mode, if there's
                         anything to choose about. Bound to \$mod+d.
+  focus left|main|right [--move] [output]
+                        jump to, or throw the current workspace at, a screen.
+                        Uses the named output normally and the internal /
+                        external panel while a manual layout is up. Bound to
+                        \$mod+w/e/r.
   auto                  the default ad-hoc layout: external above internal.
   mirror                duplicate the internal panel onto the external.
   extend up|down|left|right
@@ -75,6 +119,14 @@ externals() {
   outs | jq -r --arg n "$(internal)" '.[] | select(.name != $n) | .name'
 }
 
+# `externals` lists what is plugged in; this lists what is actually lit. The
+# two differ after `display external` or `display internal`, and `focus` needs
+# the second: jumping to an output sway has disabled does nothing at all and
+# says nothing about why.
+active() {
+  outs | jq -r --arg n "$1" 'any(.[]; .name == $n and .active)'
+}
+
 # Logical pixels, after scale and transform, which is the space `position`
 # works in. A disabled output reports 0x0, so anything that needs real numbers
 # has to enable first and read second.
@@ -87,6 +139,10 @@ off()   { swaymsg "output \"$1\" disable" >/dev/null; }
 place() { swaymsg "output \"$1\" position $2 $3" >/dev/null; }
 
 unmirror() { pkill -x wl-mirror 2>/dev/null || true; }
+
+is_manual()  { [ -e "$MANUAL" ]; }
+set_manual() { : > "$MANUAL"; }
+clr_manual() { rm -f "$MANUAL"; }
 
 # Put the external on the given side of the internal, with the internal pinned
 # at the origin. Both get enabled first: their sizes are only readable once
@@ -129,9 +185,17 @@ case ${1:-} in
       # presentation mode rather than leaving the machine unlockable. This is
       # the main reason the named profiles call this script at all.
       unmirror
+      clr_manual
       [ -x "$PRESENT" ] && "$PRESENT" off --if-on || true
     fi
-    [ "${2:-}" = adhoc ] && exec "$0" auto
+    # kanshi has just placed the screens the host file was written against, so
+    # $out_left/$out_main/$out_right are authoritative again.
+    #
+    # `if` rather than the shorter `[ ... ] && cmd`, which as the last statement
+    # in the branch made `hotplug known` exit 1 whenever an external was
+    # plugged in. Nothing read that status, which is why it survived.
+    if [ "${2:-}" = known ]; then clr_manual; fi
+    if [ "${2:-}" = adhoc ]; then exec "$0" auto; fi
     ;;
 
   auto)
@@ -140,7 +204,8 @@ case ${1:-} in
       0) ;;
       1)
         side up
-        note "external display above. Super+d to change." 5000
+        set_manual
+        note "external display above. Super+d to change, Super+e/r to jump." 5000
         ;;
       *)
         note "$n external displays, left as-is. Super+d to choose." 8000
@@ -156,6 +221,61 @@ case ${1:-} in
     swaymsg mode display >/dev/null
     ;;
 
+  # $mod+w/e/r. The slot is the key that was pressed and the trailing output is
+  # what the host file thinks that key means; see "Manual layouts" at the top
+  # for when the second is ignored.
+  focus)
+    shift
+    slot=${1:-}
+    shift || true
+
+    move=
+    target=
+    for a in "$@"; do
+      case $a in
+        --move) move=1 ;;
+        *)      target=$a ;;
+      esac
+    done
+
+    if is_manual; then
+      case $slot in
+        # Nothing sensible to point it at. Two screens have an internal and an
+        # external and nothing has a "left" that survives being unplugged.
+        left)
+          note "manual layout: Super+e is the laptop, Super+r the external"
+          exit 0
+          ;;
+        main)
+          target=$(internal)
+          [ -n "$target" ] && [ "$(active "$target")" = true ] ||
+            { note "the laptop panel is off; Super+d to bring it back"; exit 0; }
+          ;;
+        right)
+          target=$(externals | while read -r e; do
+            [ "$(active "$e")" = true ] && { echo "$e"; break; }
+          done)
+          [ -n "$target" ] || { note "no external display"; exit 0; }
+          ;;
+        *) usage ;;
+      esac
+    fi
+
+    case $slot in
+      left|main|right) ;;
+      *) usage ;;
+    esac
+    [ -n "$target" ] || exit 0
+
+    # Quoted because the host literals are make/model/serial descriptions with
+    # spaces in them. Sway takes the same quoting for a bare connector name.
+    if [ -n "$move" ]; then
+      swaymsg "move workspace to output \"$target\"" >/dev/null
+    else
+      swaymsg "focus output \"$target\"" >/dev/null
+    fi
+    ;;
+
   mirror)
     if ! command -v wl-mirror >/dev/null 2>&1; then
       note "wl-mirror isn't installed; sudo dnf install wl-mirror" 8000
@@ -169,6 +289,8 @@ case ${1:-} in
     # goes to the right of the internal as an ordinary second screen and then
     # wl-mirror opens fullscreen on it.
     side right
+    # Both screens show the same thing, so there is no "other one" to jump to.
+    clr_manual
     # setsid so the mirror outlives this script and the sway `exec` that ran it.
     setsid wl-mirror --fullscreen-output "$ext" "$int" >/dev/null 2>&1 &
     note "mirroring $int onto $ext"
@@ -176,6 +298,8 @@ case ${1:-} in
 
   extend)
     side "${2:-right}"
+    set_manual
+    note "external ${2:-right}. Super+e is the laptop, Super+r the external."
     ;;
 
   external)
@@ -195,6 +319,7 @@ case ${1:-} in
       x=$((x + w))
     done
     off "$int"
+    set_manual
     note "external only"
     ;;
 
@@ -204,6 +329,7 @@ case ${1:-} in
     on "$int"
     place "$int" 0 0
     while read -r e; do [ -n "$e" ] && off "$e"; done < <(externals)
+    clr_manual
     note "internal only"
     ;;
 
@@ -232,6 +358,11 @@ case ${1:-} in
     echo "internal:  $(internal)"
     echo "externals: $(externals | tr '\n' ' ')"
     echo "kanshi:    $(kanshictl status 2>/dev/null | head -n1 || echo unknown)"
+    if is_manual; then
+      echo "layout:    manual; Super+e is the laptop, Super+r the external"
+    else
+      echo "layout:    from kanshi; Super+w/e/r are the host file's outputs"
+    fi
     ;;
 
   *) usage ;;
