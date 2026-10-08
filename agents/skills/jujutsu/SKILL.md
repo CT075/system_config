@@ -210,6 +210,22 @@ surrounding lines were last touched by an unrelated commit gets torn in half.
 
 **Note**: `jj squash -i` opens an interactive UI and will hang in agent environments. Avoid it.
 
+### Rebasing a Stack That Carries Generated Output
+
+A commit holding both source and the output built from it conflicts in both
+when it moves. Resolve the source, then rebuild, and the generated conflict
+goes away as a by-product rather than being merged by hand.
+
+Do it one commit at a time, `jj edit` on the first conflicted one and work
+forward, because each commit's output is only correct for its own source. And
+regenerating means the build has to write the output rather than check it, so
+whatever switch does that is on for the duration and off again before the
+commit is read.
+
+The last commit in the stack is the only one whose output a full build will
+confirm. That is the run to trust, and it confirms the whole tree at once,
+which is worth more than confirming each commit's separately.
+
 ### Splitting Commits
 
 **Warning**: `jj split` is interactive and will hang in agent environments. To divide a commit, use `jj restore` to move changes out, then create separate commits manually.
@@ -221,7 +237,19 @@ Automatically distribute changes to the commits that last modified those lines:
 ```bash
 # Absorb working copy changes into appropriate ancestor commits
 jj absorb
+
+# Only these paths; everything else stays in @
+jj absorb path/to/file.rs
 ```
+
+Give it paths whenever `@` also holds work that must not move. A bare `absorb`
+takes every path it can attribute, and a file whose lines were last touched by
+some unrelated ancestor goes there, which is how a document being written now
+ends up scattered across the commits that happen to have edited it before.
+
+Path-limited, it is the right tool for the case `--from`/`--into` handles
+badly: several small changes in one file that belong to several different
+commits. Tidying comments across a stack is the usual shape.
 
 ### Abandoning Commits
 
@@ -322,7 +350,7 @@ In `jj log`, each workspace's `@` appears as `<workspace-name>@`.
 
 - **Isolation by default.** `jj workspace add` gives the new workspace its own fresh empty commit; workspaces don't start out sharing `@`, and on-disk files are never live-mirrored between them.
 - **Propagation at command boundaries.** Each jj command snapshots the current workspace's files and reads the op log, so it sees commits/bookmarks made by other workspaces. There is no filesystem watcher.
-- **Stale working copy.** If another workspace rewrites this workspace's `@` (e.g. via `jj squash`, `rebase`, `abandon`), jj refuses commands here until you run `jj workspace update-stale`. Same recovery path if a command was interrupted mid-update.
+- **Stale working copy.** If another workspace rewrites anything in this workspace's ancestry, its `@` included (e.g. via `jj squash`, `rebase`, `abandon`, `absorb`), jj refuses commands here until you run `jj workspace update-stale`. Rewriting a commit several steps back does it just as surely as rewriting `@`, so a shared checkout goes stale every time somebody edits the stack underneath it. Same recovery path if a command was interrupted mid-update.
 - **Shared `@` is sharp-edged.** `jj edit <id>` lets two workspaces point at the same change without warning. When one mutates it, the other goes stale; if the stale one had un-snapshotted edits, `update-stale` preserves them as a **divergent commit** (same change ID, shown as `xyz??` in `jj log`) that you must resolve. Avoid sharing `@` unless both workspaces are read-only.
 
 ### Agent guidance
@@ -439,7 +467,7 @@ jj st
 1. **Review your commit**: `jj --no-pager show @` or `jj --no-pager diff --git`
 2. **Is it atomic?** One logical change per commit
 3. **Is the message clear, and does it read like its neighbours in `jj log`?** Match the repo's convention; absent one, use an imperative verb phrase in sentence case with no full stop: e.g. "Add login endpoint", "Fix null pointer in payment processor", "Remove deprecated API endpoints"
-4. **Are there unrelated changes?** Use `jj restore` to move changes out, then create separate commits
+4. **Are there unrelated changes?** Some of them will not be yours: a repo that checks in build output gets that output rewritten by any build you run, and with no staging area it joins the working copy silently. Read the whole `jj st` list and not just the paths you edited. Use `jj restore` to move changes out, then create separate commits
 5. **Should changes be elsewhere?** Use `jj squash` or `jj absorb`
 
 ## Quick Reference
