@@ -8,7 +8,11 @@
 
 set -eu
 
-here=$(cd "$(dirname "$0")/.." && pwd)
+# readlink -f rather than $0 directly, because this script is reachable through
+# a symlink it creates itself: config.d/40-autostart.conf calls it as
+# ~/.config/sway/relink, where an unresolved $0 puts the repo root at
+# ~/.config and the very next line fails looking for ~/.config/scripts/sysname.
+here=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 
 sysname=$("$here/scripts/sysname")
 
@@ -31,10 +35,21 @@ fi
 
 # ln -sfn into a path that is already a real directory would nest the link
 # inside it rather than replace it, so refuse instead.
+#
+# A link that is already correct is left alone rather than rewritten. This
+# script no longer runs only by hand: dotfiles/sway/environment runs it at
+# session start and 40-autostart.conf runs it on every reload, so a
+# steady-state rerun used to mean seventeen chances for swaybar to exec
+# ~/.config/sway/statusbar inside the window where `ln -sfn` had unlinked it
+# and not yet replaced it. Skipping is also what makes the output worth
+# reading, since a quiet run now means nothing moved.
 link() {
   if [ -d "$2" ] && [ ! -L "$2" ]; then
     echo "$2 is a real directory; move it aside and rerun" >&2
     exit 1
+  fi
+  if [ -L "$2" ] && [ "$(readlink "$2")" = "$1" ]; then
+    return
   fi
   echo "$2 -> $1"
   ln -sfn "$1" "$2"
@@ -64,3 +79,13 @@ link "$host_dir/kanshi" ~/.config/kanshi/config
 link "$here/dotfiles/i3status/config" ~/.config/i3status/config
 link "$here/dotfiles/swaync/config.json" ~/.config/swaync/config.json
 link "$here/dotfiles/swaync/style.css" ~/.config/swaync/style.css
+# The hook that makes this script run at session start. /usr/bin/start-sway
+# sources ~/.config/sway/environment just before it execs sway, which is the
+# last point anything user-owned runs with the compositor not yet reading
+# config. Linking it from here means the first run on a host is still by hand;
+# after that the linker keeps its own trigger alive.
+link "$here/dotfiles/sway/environment" ~/.config/sway/environment
+# An alias for this script, so config.d/40-autostart.conf can reach it the way
+# the config reaches every other script, as ~/.config/sway/<name>, instead of
+# being the one line that hardcodes where the repo was cloned.
+link "$here/scripts/link-sway" ~/.config/sway/relink

@@ -1,0 +1,51 @@
+#!/bin/bash
+# Point this clone's git hooks at the tracked hooks/ directory.
+#
+# core.hooksPath rather than symlinking each hook into .git/hooks, which is the
+# more common trick. One setting covers every hook the repo will ever add, and
+# a hook that arrives in a later commit is live on the next pull with nothing
+# to rerun; with per-hook symlinks the installer becomes another thing that has
+# to be remembered after a commit adds a file, which is the exact failure the
+# hooks are here to stop.
+#
+# The cost is that core.hooksPath is per-clone local config, so this is a
+# once-per-host step like scripts/link-sway itself. It can't bootstrap itself
+# from a hook, for obvious reasons.
+#
+# Not idempotent by accident either; rerunning sets the same value again.
+
+set -eu
+
+here=$(cd "$(dirname "$0")/.." && pwd)
+
+cd "$here"
+
+if [ ! -d hooks ]; then
+  echo "no hooks/ directory in $here" >&2
+  exit 1
+fi
+
+# Anything already in .git/hooks stops being consulted the moment hooksPath is
+# set, so say so rather than letting a hook go quiet. Samples don't count.
+stale=$(find .git/hooks -maxdepth 1 -type f ! -name '*.sample' 2>/dev/null)
+if [ -n "$stale" ]; then
+  echo "note: core.hooksPath bypasses .git/hooks, and these will stop running:" >&2
+  echo "$stale" | sed 's/^/  /' >&2
+fi
+
+current=$(git config --local --get core.hooksPath || true)
+if [ -n "$current" ] && [ "$current" != hooks ]; then
+  echo "note: core.hooksPath was '$current', now 'hooks'" >&2
+fi
+
+git config --local core.hooksPath hooks
+
+echo "core.hooksPath -> hooks"
+for h in hooks/post-*; do
+  [ -f "$h" ] || continue
+  if [ -x "$h" ]; then
+    echo "  $(basename "$h")"
+  else
+    echo "  $(basename "$h") (NOT EXECUTABLE; chmod +x it)" >&2
+  fi
+done

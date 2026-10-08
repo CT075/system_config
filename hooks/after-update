@@ -1,0 +1,34 @@
+#!/bin/bash
+# Shared body for the post-merge, post-checkout and post-rewrite hooks: relink
+# whatever the fetched commits added.
+#
+# The failure this exists to close is drift between the repo's link list and
+# what is actually in ~/.config. scripts/link-sway is the only thing that
+# creates those symlinks, and for a long time the only thing that ran it was a
+# person remembering to. A commit that adds a script and a link line for it
+# leaves every other host one `git pull` away from a config that names a
+# symlink nobody created, and the symptom shows up whenever that binding is
+# next pressed rather than at pull time.
+#
+# Three hooks rather than one because `git pull` lands in different places
+# depending on how it merged: post-merge for a merge or fast-forward,
+# post-rewrite for `pull --rebase`, post-checkout for a branch switch. All
+# three delegate here so there is one copy of the decision.
+#
+# Hooks are run from the top of the working tree, but resolving against $0
+# instead means this still works under `git -C` and a relative core.hooksPath.
+set -u
+
+here=$(cd "$(dirname "$0")/.." && pwd)
+
+# Nothing to link on a host that doesn't run the compositor, and the repo is
+# shared across machines that don't. Testing for sway rather than re-deriving
+# link-sway's own host check, which stays its business.
+command -v sway >/dev/null 2>&1 || exit 0
+
+# Never fail the hook. git ignores what post-merge returns anyway, and a pull
+# that reports failure because a symlink couldn't be placed teaches you to stop
+# reading the output of pulls.
+"$here/scripts/link-sway" || echo "link-sway failed; run $here/scripts/link-sway by hand" >&2
+
+exit 0

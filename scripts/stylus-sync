@@ -1,0 +1,28 @@
+#!/bin/bash
+# Print the URLs to install every style in config/stylus/styles from, and strip
+# anything in them that would point Stylus somewhere else for updates.
+#
+# The link between a style here and the copy in the browser is the URL you
+# install it from. Stylus keeps that as the style's update source, so "Check
+# for updates" refetches this file. It treats a file: URL as localhost and
+# skips its usual same-version check, so an edit lands without needing a
+# @version bump.
+#
+# That only holds if the file carries no @updateURL of its own, which wins over
+# the install URL. A style pasted in from userstyles.world brings one, and it
+# would quietly send updates back upstream and overwrite the local edits, so it
+# gets removed here.
+#
+# Installing is still a manual click: open a printed URL in Vivaldi and Stylus
+# takes over the page. Stylus needs "Allow access to file URLs" checked on its
+# entry in vivaldi://extensions, both to install and to update.
+
+set -eu
+
+styles=$(cd "$(dirname "$0")/../config/stylus/styles" && pwd)
+
+shopt -s nullglob
+for f in "$styles"/*.user.css; do
+  sed -i '/^[ \t]*@updateURL[ \t]/d' "$f"
+  echo "file://$f"
+done

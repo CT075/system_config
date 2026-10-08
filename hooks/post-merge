@@ -1,0 +1,3 @@
+#!/bin/sh
+# `git pull` that merged or fast-forwarded. See hooks/after-update.
+exec "$(dirname "$0")/after-update"
