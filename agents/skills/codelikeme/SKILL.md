@@ -35,6 +35,46 @@ edit can't quietly flatten them:
 assert(inputs.map(reference).distinct.length == 2)
 ```
 
+The guard itself has to be one the correct program can pass. This one is not:
+
+```scala
+assert(samples.map(cycles).distinct.length > 1)
+```
+
+when what is under test is "the secret does not move the clock", because a
+program whose clock never moves is the right answer rather than a dead oracle.
+Anchor the guard to something a right answer still has to show: another model,
+another input class, another implementation.
+
+```scala
+assert(withCache(demo) > withoutCache(demo))
+```
+
+## A green run that did not run is not evidence
+
+Build tools cache test results and replay them. A `success` line can mean the
+tests passed, or that nothing the tool tracks has changed since the last time
+they did, and after an edit the tool failed to notice those are very different
+claims. Check that the run happened before leaning on it: the exit code, the
+number of tests reported, the timestamp on the report. Deleting an artifact the
+run writes and watching it come back is the cheapest version.
+
+A partial run is the same trap wearing a disguise, and the artifact check does
+not catch it. A tool whose test target is incremental runs the cases it thinks
+changed and reports success for the run it did, which is a true statement about
+a subset. The artifact comes back, from the one case that ran. What catches it
+is a count: how many cases the run reported against how many exist. Such a tool
+usually ships an exhaustive target as well, with the fast one as the default,
+so find it and use that one. The case a tool skips is the case a change two
+levels up broke, because what it skipped on was the case's own source being
+untouched. Sharpest where the outputs are files nobody reads unless they
+differ, and not confined to that: a green subset is a true statement about a
+subset whatever the cases write.
+
+The exhaustive run buys something the incremental one cannot say. When it
+rewrites every output and nothing changes, that is the tree being current
+rather than merely consistent with itself.
+
 ## Comments
 
 Comments should always be written in my voice. Read and invoke the `/writelikeme` skill before writing comment text. It is okay for code comments to read more casual unless they are user-facing documentation.
