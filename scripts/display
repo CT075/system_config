@@ -12,8 +12,8 @@
 #   hotplug   kanshi's `exec` fires it when a profile activates. On the
 #             catch-all `adhoc` profile it lays the new screen out; on a named
 #             profile it only checks whether presentation mode should end.
-#   menu      $mod+d. Puts sway in the `display` binding mode, where m/e/x/i
-#             pick a layout. See config.d/66-bindings-display.conf.
+#   menu      $mod+d. Pops up $menu with the layouts below in it. See
+#             config.d/66-bindings-display.conf.
 #   focus     $mod+w/e/r and their Shift variants, via
 #             config.d/64-bindings-output.conf. See "Manual layouts" below.
 #
@@ -82,8 +82,10 @@ usage() {
 usage: display <command>
 
   hotplug known|adhoc   called by kanshi's exec, not by hand.
-  menu                  enter sway's \`display\` binding mode, if there's
-                        anything to choose about. Bound to \$mod+d.
+  menu [picker...]      pick a layout from a dmenu-style picker, if there's
+                        anything to choose about. Bound to \$mod+d, which
+                        passes \$menu from the host file. Defaults to
+                        \`wofi --dmenu\`.
   focus left|main|right [--move] [output]
                         jump to, or throw the current workspace at, a screen.
                         Uses the named output normally and the internal /
@@ -214,11 +216,60 @@ case ${1:-} in
     ;;
 
   menu)
+    shift
+    # $menu from the host file, in dmenu mode: the same program $launcher
+    # names, reading its choices on stdin. Defaulted rather than required so
+    # that running this by hand works, since sway isn't there to substitute
+    # the variable.
+    [ "$#" -gt 0 ] || set -- wofi --dmenu
+    if ! command -v "$1" >/dev/null 2>&1; then
+      note "$1 isn't installed; \$menu in host.conf names the picker" 8000
+      exit 1
+    fi
+
     if [ -z "$(externals)" ]; then
       note "no external display"
       exit 0
     fi
-    swaymsg mode display >/dev/null
+
+    # Flat rather than the nested binding modes this replaced. Seven entries
+    # fit on one screen, and picking a direction was the only thing the second
+    # level ever did.
+    #
+    # Each line opens with a two-letter handle so the menu can be driven
+    # blind: type the handle, press Return. The pickers filter on substrings
+    # of the whole line, so a handle is only a shortcut if it appears in no
+    # other line, which rules out the obvious spellings. `eu` for extend up
+    # forces `er` for extend right, and `er` is inside "external". So the
+    # directions are jkhl, which is what $mod+j/k/h/l already mean in
+    # 62-bindings-focus.conf and what the old binding mode used here.
+    #
+    # Nothing enforces that. Adding a line means checking by eye that its
+    # handle appears in no other line and that no other handle appears in it.
+    choice=$(printf '%s\n' \
+      "ej  extend up" \
+      "ek  extend down" \
+      "eh  extend left" \
+      "el  extend right" \
+      "mi  mirror" \
+      "xo  external only" \
+      "io  internal only" | "$@") || true
+
+    # Empty is a dismissed picker, which wants no feedback at all.
+    [ -n "${choice:-}" ] || exit 0
+
+    # On the handle rather than the whole line, so rewording a label can't
+    # silently unhook it.
+    case ${choice%% *} in
+      ej) exec "$0" extend up ;;
+      ek) exec "$0" extend down ;;
+      eh) exec "$0" extend left ;;
+      el) exec "$0" extend right ;;
+      mi) exec "$0" mirror ;;
+      xo) exec "$0" external ;;
+      io) exec "$0" internal ;;
+      *) exit 0 ;;
+    esac
     ;;
 
   # $mod+w/e/r. The slot is the key that was pressed and the trailing output is
