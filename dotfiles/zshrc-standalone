@@ -35,6 +35,7 @@ autoload -Uz compinit && compinit
 
 alias in='task add +in'
 alias scala-run='scala-cli run --server=false'
+alias hvim='nvim -c HarpoonEnter'
 
 [ "$TERM" = "alacritty" ] && alias ssh='TERM=xterm-256color ssh'
 

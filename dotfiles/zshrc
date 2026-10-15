@@ -80,3 +80,4 @@ for module in $HOST_FILES; do
   load_module $SYSTEM_SCRIPTS/$module
 done
 
+alias hvim='nvim -c HarpoonEnter'

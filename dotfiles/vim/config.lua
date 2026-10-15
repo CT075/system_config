@@ -114,26 +114,9 @@ harpoon:extend({
   end,
 })
 
-vim.keymap.set("n", "<leader>a", function()
-    if not harpoonable() then
-      vim.notify("Harpoon: nothing to add, this buffer has no file", vim.log.levels.WARN)
-      return
-    end
-    harpoon:list():add()
-    vim.cmd('redrawtabline')
-  end, {desc = "Harpoon add file"})
 vim.keymap.set("n", "<C-e>", function()
     harpoon.ui:toggle_quick_menu(harpoon:list())
   end, {desc = "Harpoon quick menu"})
-vim.keymap.set("n", "<leader>1", function() harpoon:list():select(1) end)
-vim.keymap.set("n", "<leader>2", function() harpoon:list():select(2) end)
-vim.keymap.set("n", "<leader>3", function() harpoon:list():select(3) end)
-vim.keymap.set("n", "<leader>4", function() harpoon:list():select(4) end)
-vim.keymap.set("n", "<leader>5", function() harpoon:list():select(5) end)
-vim.keymap.set("n", "<leader>6", function() harpoon:list():select(6) end)
-vim.keymap.set("n", "<leader>7", function() harpoon:list():select(7) end)
-vim.keymap.set("n", "<leader>8", function() harpoon:list():select(8) end)
-vim.keymap.set("n", "<leader>9", function() harpoon:list():select(9) end)
 
 local icon_hl_cache = {}
 
@@ -148,7 +131,6 @@ local function setup_highlights()
   local normal, tab, fill = attrs("Normal"), attrs("TabLine"), attrs("TabLineFill")
   local sel, func = attrs("TabLineSel"), attrs("Function")
   local warn = attrs("DiagnosticWarn"); if not warn.fg then warn = attrs("WarningMsg") end
-  local special, comment = attrs("Special"), attrs("Comment")
 
   local active_bg   = hex(normal.bg) or hex(sel.bg)
   local active_fg   = hex(normal.fg) or hex(sel.fg)
@@ -157,7 +139,6 @@ local function setup_highlights()
   local fill_bg     = hex(fill.bg) or inactive_bg
   local accent_fg   = hex(func.fg) or active_fg
   local warn_fg     = hex(warn.fg) or accent_fg
-  local soft_fg     = hex(special.fg) or hex(comment.fg) or inactive_fg
 
   local set = vim.api.nvim_set_hl
   set(0, "HarpoonActive",      { fg = active_fg,   bg = active_bg, bold = true })
@@ -166,10 +147,6 @@ local function setup_highlights()
   set(0, "HarpoonAccent",      { fg = accent_fg,   bg = active_bg })
   set(0, "HarpoonModActive",   { fg = warn_fg,     bg = active_bg })
   set(0, "HarpoonModInactive", { fg = warn_fg,     bg = inactive_bg })
-  -- soft entry: same backgrounds, distinct (italic) accent color
-  set(0, "HarpoonSoftActive",   { fg = soft_fg, bg = active_bg,   italic = true, bold = true })
-  set(0, "HarpoonSoftInactive", { fg = soft_fg, bg = inactive_bg, italic = true })
-  set(0, "HarpoonSoftAccent",   { fg = soft_fg, bg = active_bg })
 end
 
 -- devicon color composited onto the (active/inactive) tab background
@@ -190,119 +167,63 @@ setup_highlights()
 --------------------------------------------------------------------------------
 -- Shared state + helpers
 --------------------------------------------------------------------------------
--- The "soft" entry: most recent non-harpooned file. Shown in the tabline,
--- cyclable, but replaced whenever another non-harpooned file is entered.
-local soft = nil -- { value = <root-relative path> } | nil
+-- The tabline belongs to this session, not to the repo. Every file entered
+-- becomes a tab, and :HarpoonEnter pulls in the harpoon list on top of that.
+-- Closing a tab never touches harpoon, so a second nvim in the same repo can't
+-- eat the persisted list.
+local tabs = {} -- absolute paths, in display order
 
-local function current_value(list)
-  local ok, v = pcall(function()
-    return list.config.create_list_item(list.config).value
-  end)
-  if not ok or v == nil or v == "" then return nil end
+local function current_value()
+  local v = vim.api.nvim_buf_get_name(0)
+  if v == "" then return nil end
   return v
 end
 
-local function value_in_list(list, value)
-  if not value then return false end
-  local _, idx = list:get_by_value(value)
-  return idx ~= nil
+local function tab_index(value)
+  if not value then return nil end
+  for i, v in ipairs(tabs) do if v == value then return i end end
+  return nil
 end
 
--- Returns the soft entry only if it's set and NOT already a real list item;
--- clears it if it has since been harpooned.
-local function get_soft(list)
-  if not soft then return nil end
-  if value_in_list(list, soft.value) then soft = nil return nil end
-  return soft
+local function add_tab(value)
+  if not tab_index(value) then tabs[#tabs + 1] = value end
 end
 
+-- Harpooned files go through harpoon's select so the cursor lands where it was
+-- last left. Anything else is a plain :edit.
 local function open_value(value)
-  vim.cmd.edit(vim.fn.fnameescape(vim.fn.fnamemodify(value, ":p")))
-end
-
--- Ordered virtual tab list: real harpoon items, then the soft entry.
-local function combined(list)
-  local arr = {}
-  for i = 1, list._length do
-    local it = list.items[i]
-    if it ~= nil then arr[#arr + 1] = { value = it.value, kind = "list", idx = i } end
-  end
-  local s = get_soft(list)
-  if s then arr[#arr + 1] = { value = s.value, kind = "soft" } end
-  return arr
-end
-
-local function goto_last_or_blank(list)
-  local last
-  for i = 1, list._length do if list.items[i] then last = i end end
-  if last then list:select(last) else vim.cmd("enew") end
-end
-
--- Delete a harpoon entry by value; if it's the current buffer, move like a tab.
-local function harpoon_delete(value)
   local list = harpoon:list()
+  local _, idx = list:get_by_value(value)
+  if idx then list:select(idx)
+  else vim.cmd.edit(vim.fn.fnameescape(value)) end
+end
 
-  local items = {}
-  for i = 1, list._length do
-    if list.items[i] ~= nil then items[#items + 1] = list.items[i] end
-  end
-
-  local pos
-  for i, it in ipairs(items) do if it.value == value then pos = i break end end
+-- Drop a tab by value; if it's the current buffer, move like a tab.
+local function tab_delete(value)
+  local pos = tab_index(value)
   if not pos then return false end
-
-  local was_current = (value == current_value(list))
-  local target = items[pos + 1] or items[pos - 1]
-
-  table.remove(items, pos)
-  list.items = items
-  list._length = #items
+  local was_current = (value == current_value())
+  table.remove(tabs, pos)
 
   if was_current then
-    if target then
-      local _, idx = list:get_by_value(target.value)
-      list:select(idx)
-    else
-      local s = get_soft(list)
-      if s then open_value(s.value) else vim.cmd("enew") end
-    end
+    local target = tabs[pos] or tabs[pos - 1]
+    if target then open_value(target) else vim.cmd("enew") end
   end
   vim.cmd("redrawtabline")
   return true
 end
 
--- Clear the soft entry; if we're currently sitting on it, move away first.
-local function clear_soft()
-  if not soft then return end
-  local list = harpoon:list()
-  local on_soft = (soft.value == current_value(list))
-  soft = nil
-  if on_soft then goto_last_or_blank(list) end
-  vim.cmd("redrawtabline")
-end
-
 local function close_current()
-  local list = harpoon:list()
   local buf = vim.api.nvim_get_current_buf()
-  local val = current_value(list)
+  local val = current_value()
 
-  if value_in_list(list, val) then
-    harpoon_delete(val)
+  if tab_index(val) then
+    tab_delete(val)
     return
   end
 
-  local s = get_soft(list)
-  if s and val and s.value == val then
-    clear_soft()
-    return
-  end
-
-  -- (C) untracked buffer (terminal, help, [No Name], etc.): move to a tab, drop it.
-  local last
-  for i = 1, list._length do if list.items[i] then last = i end end
-  if last then list:select(last)
-  elseif s then open_value(s.value)
-  else vim.cmd("enew") end
+  -- Untracked buffer (terminal, help, [No Name], etc.): move to a tab, drop it.
+  if #tabs > 0 then open_value(tabs[#tabs]) else vim.cmd("enew") end
 
   if vim.api.nvim_buf_is_valid(buf) and buf ~= vim.api.nvim_get_current_buf() then
     pcall(vim.api.nvim_buf_delete, buf, { force = false })
@@ -310,36 +231,37 @@ local function close_current()
   vim.cmd("redrawtabline")
 end
 
--- Cycle through harpoon items + the soft entry.
-local function cycle(delta)
-  local list = harpoon:list()
-  local arr = combined(list)
-  if #arr == 0 then return end
-  local cur = current_value(list)
-  local pos
-  for i, e in ipairs(arr) do if e.value == cur then pos = i break end end
-  local np = (pos == nil) and (delta > 0 and 1 or #arr)
-                          or (((pos - 1 + delta) % #arr) + 1)
-  local e = arr[np]
-  if e.kind == "list" then list:select(e.idx) else open_value(e.value) end
+-- ,d plus unloading the buffer, so re-entering it doesn't bring the tab back.
+-- Refuses on unsaved changes rather than leaving a modified buffer with no tab.
+local function delete_current()
+  local buf = vim.api.nvim_get_current_buf()
+  if vim.bo[buf].modified then
+    vim.notify("Buffer has unsaved changes", vim.log.levels.WARN)
+    return
+  end
+  close_current()
+  if vim.api.nvim_buf_is_valid(buf) and buf ~= vim.api.nvim_get_current_buf() then
+    pcall(vim.api.nvim_buf_delete, buf, {})
+  end
 end
 
-function _G.HarpoonTabClick(minwid) harpoon:list():select(minwid) end
+local function cycle(delta)
+  if #tabs == 0 then return end
+  local pos = tab_index(current_value())
+  local np = (pos == nil) and (delta > 0 and 1 or #tabs)
+                          or (((pos - 1 + delta) % #tabs) + 1)
+  open_value(tabs[np])
+end
+
+function _G.HarpoonTabClick(minwid)
+  if tabs[minwid] then open_value(tabs[minwid]) end
+end
 function _G.HarpoonTabClose(minwid)
-  local it = harpoon:list().items[minwid]
-  if it then harpoon_delete(it.value) end
+  if tabs[minwid] then tab_delete(tabs[minwid]) end
 end
-function _G.HarpoonSoftClick()
-  local s = get_soft(harpoon:list())
-  if s then open_value(s.value) end
-end
-function _G.HarpoonSoftClose() clear_soft() end
 
 function _G.HarpoonTabline()
-  local ok, hp = pcall(require, "harpoon")
-  if not ok then return "%#HarpoonFill#" end
-  local list = hp:list()
-  local current = current_value(list)
+  local current = current_value()
 
   local modified = {}
   for _, b in ipairs(vim.api.nvim_list_bufs()) do
@@ -349,12 +271,9 @@ function _G.HarpoonTabline()
     end
   end
 
-  -- Renders one tab. `is_soft` swaps highlight groups; `label` is the shown
-  -- number (or nil -> "~" marker). `arg` is the click minwid.
-  local function build_tab(value, active, is_soft, label, open_fn, close_fn, arg)
-    local body = is_soft
-      and (active and "%#HarpoonSoftActive#" or "%#HarpoonSoftInactive#")
-      or  (active and "%#HarpoonActive#"     or "%#HarpoonInactive#")
+  -- Renders tab number `i`; `i` doubles as the click minwid.
+  local function build_tab(value, active, i)
+    local body = active and "%#HarpoonActive#" or "%#HarpoonInactive#"
 
     local name = vim.fn.fnamemodify(value, ":t")
     if name == "" then name = "[No Name]" end
@@ -368,35 +287,21 @@ function _G.HarpoonTabline()
 
     local accent
     if active then
-      accent = (is_soft and "%#HarpoonSoftAccent#" or "%#HarpoonAccent#") .. "\u{258E}" .. body .. " "
+      accent = "%#HarpoonAccent#\u{258E}" .. body .. " "
     else
       accent = body .. "  "
     end
 
-    local tag = (label and (label .. " ") or "\u{223C} ")
     name = name:gsub("%%", "%%%%")
 
     return accent
-      .. "%" .. arg .. "@v:lua." .. open_fn .. "@" .. tag .. name .. " %X"
-      .. body .. "%" .. arg .. "@v:lua." .. close_fn .. "@" .. right .. " %X"
+      .. "%" .. i .. "@v:lua.HarpoonTabClick@" .. i .. " " .. name .. " %X"
+      .. body .. "%" .. i .. "@v:lua.HarpoonTabClose@" .. right .. " %X"
   end
 
-  local parts, shown = {}, 0
-  for i = 1, list._length do
-    local it = list.items[i]
-    if it ~= nil then
-      shown = shown + 1
-      local active = current and it.value == current
-      parts[#parts + 1] =
-        build_tab(it.value, active, false, tostring(shown), "HarpoonTabClick", "HarpoonTabClose", i)
-    end
-  end
-
-  local s = get_soft(list)
-  if s then
-    local active = current and s.value == current
-    parts[#parts + 1] =
-      build_tab(s.value, active, true, nil, "HarpoonSoftClick", "HarpoonSoftClose", 0)
+  local parts = {}
+  for i, v in ipairs(tabs) do
+    parts[#parts + 1] = build_tab(v, v == current, i)
   end
 
   if #parts == 0 then return "%#HarpoonFill#" end
@@ -406,10 +311,48 @@ end
 vim.o.showtabline = 2
 vim.o.tabline = "%!v:lua.HarpoonTabline()"
 
-vim.keymap.set("n",  "<leader>d", close_current, { desc = "Close current buffer / tab" })
+-- Pull the harpoon list into the tabline. Harpoon order goes first so <leader>N
+-- means the same file it did last session; tabs opened before this keep their
+-- relative order after it. Stays put unless the current buffer is a blank one.
+vim.api.nvim_create_user_command("HarpoonEnter", function()
+  local list = harpoon:list()
+  local merged = {}
+  for i = 1, list._length do
+    local it = list.items[i]
+    if it then merged[#merged + 1] = it.value end
+  end
+  if #merged == 0 then
+    vim.notify("Harpoon: list is empty", vim.log.levels.WARN)
+    return
+  end
+  for _, v in ipairs(tabs) do
+    if not vim.tbl_contains(merged, v) then merged[#merged + 1] = v end
+  end
+  tabs = merged
+  if not current_value() then open_value(tabs[1]) end
+  vim.cmd("redrawtabline")
+end, { desc = "Populate the tabline from the harpoon list" })
 
-vim.keymap.set("n", "<C-k>", function() cycle(1) end,  { desc = "Harpoon: next tab" })
-vim.keymap.set("n", "<C-j>", function() cycle(-1) end, { desc = "Harpoon: prev tab" })
+-- Every file is already a tab, so this only touches the persisted list.
+vim.keymap.set("n", "<leader>a", function()
+    if not harpoonable() then
+      vim.notify("Harpoon: nothing to add, this buffer has no file", vim.log.levels.WARN)
+      return
+    end
+    harpoon:list():add()
+  end, {desc = "Harpoon add file"})
+
+for i = 1, 9 do
+  vim.keymap.set("n", "<leader>" .. i, function()
+    if tabs[i] then open_value(tabs[i]) end
+  end, { desc = "Go to tab " .. i })
+end
+
+vim.keymap.set("n",  "<leader>d", close_current, { desc = "Close current buffer / tab" })
+vim.keymap.set("n",  "<leader>D", delete_current, { desc = "Close tab and delete its buffer" })
+
+vim.keymap.set("n", "<C-k>", function() cycle(1) end,  { desc = "Next tab" })
+vim.keymap.set("n", "<C-j>", function() cycle(-1) end, { desc = "Prev tab" })
 
 local grp = vim.api.nvim_create_augroup("HarpoonTabline", { clear = true })
 
@@ -418,13 +361,10 @@ vim.api.nvim_create_autocmd("BufEnter", {
   callback = function(args)
     if vim.bo[args.buf].buftype ~= "" then return end
     if vim.api.nvim_buf_get_name(args.buf) == "" then return end
-    local list = harpoon:list()
-    local val = current_value(list)
-    if not val or value_in_list(list, val) then return end -- harpooned -> leave soft as-is
-    if not soft or soft.value ~= val then
-      soft = { value = val }
-      vim.cmd("redrawtabline")
-    end
+    local val = current_value()
+    if tab_index(val) then return end
+    add_tab(val)
+    vim.cmd("redrawtabline")
   end,
 })
 

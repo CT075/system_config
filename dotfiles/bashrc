@@ -30,6 +30,8 @@ alias la='ls -a'
 alias cc='gcc -Wall -W -ansi -pedantic -O2 '
 alias valgrind-leak='valgrind --leak-check=full --show-reachable=yes'
 
+alias hvim='nvim -c HarpoonEnter'
+
 # ----- shell settings and completion -------------------------------------
 
 # Make .bash_history store more and not store duplicates
