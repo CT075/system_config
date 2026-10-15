@@ -18,6 +18,17 @@
   "theme": "dark",
   "editorMode": "vim",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/protect-writelikeme-skill.sh\""
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

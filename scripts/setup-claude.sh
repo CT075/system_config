@@ -15,6 +15,7 @@ olddir=~/.claude_old
 links=(
   "agents/skills:skills"
   "agents/output-styles:output-styles"
+  "agents/hooks:hooks"
   "claudeSettings.json:settings.json"
 )
 

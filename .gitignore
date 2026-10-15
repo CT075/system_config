@@ -5,4 +5,9 @@ dotfiles/vim/.netrwhist
 dotfiles/vim/bundle
 dotfiles/vim/plugged
 
+# Generated Claude skill-sync state and local scratch areas
 agents/skills/synced/
+.tmp/
+.trash/
+tmp/
+trash/

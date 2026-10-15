@@ -12,10 +12,12 @@
 
 set -eu
 
-reason='The writelikeme SKILL.md is a pointer, not a source. The voice lives in
-~/.claude/output-styles/writelikeme.md and every improvement belongs there. Make the edit
-in that file instead. If the pointer itself is genuinely what needs changing, say so and
-let the user edit it by hand.'
+reason='The writelikeme SKILL.md is a pointer, not a source. Locate the source by resolving
+the skill directory through symlinks and following ../../output-styles/writelikeme.md. If
+that is unavailable, use the host-specific output-styles directory, such as
+~/.claude/output-styles or ~/.codex/output-styles. Make the edit in that source file
+instead. If the pointer itself is genuinely what needs changing, say so and let the user
+edit it by hand.'
 
 file_path="$(jq -r '.tool_input.file_path // empty')"
 
