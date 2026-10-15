@@ -1,22 +1,11 @@
 {
-  "model": "opus[1m]",
-  "enabledPlugins": {
-    "i-have-adhd@i-have-adhd": true
-  },
-  "extraKnownMarketplaces": {
-    "i-have-adhd": {
-      "source": {
-        "source": "github",
-        "repo": "ayghri/i-have-adhd"
-      }
-    }
+  "env": {
+    "ENABLE_LSP_TOOL": "1"
   },
   "attribution": {
     "commit": ""
   },
-  "outputStyle": "writelikeme",
-  "theme": "dark",
-  "editorMode": "vim",
+  "model": "claude-opus-5",
   "hooks": {
     "PreToolUse": [
       {
@@ -40,5 +29,19 @@
         ]
       }
     ]
-  }
+  },
+  "enabledPlugins": {
+    "i-have-adhd@i-have-adhd": true
+  },
+  "extraKnownMarketplaces": {
+    "i-have-adhd": {
+      "source": {
+        "source": "github",
+        "repo": "ayghri/i-have-adhd"
+      }
+    }
+  },
+  "outputStyle": "writelikeme",
+  "theme": "dark",
+  "editorMode": "vim"
 }

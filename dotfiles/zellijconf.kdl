@@ -84,6 +84,7 @@ keybinds clear-defaults=true {
         bind "n" { MovePane; }
         bind "p" { MovePaneBackwards; }
         bind "tab" { MovePane; }
+        bind "Ctrl h" { SwitchToMode "normal"; }
     }
     scroll {
         bind "e" { EditScrollback; SwitchToMode "normal"; }
@@ -142,6 +143,9 @@ keybinds clear-defaults=true {
     shared_except "locked" "resize" {
         bind "Ctrl n" { SwitchToMode "resize"; }
     }
+    shared_except "locked" "move" {
+        bind "Ctrl h" { SwitchToMode "move"; }
+    }
     shared_except "normal" "locked" "entersearch" {
         bind "enter" { SwitchToMode "normal"; }
     }
@@ -197,7 +201,7 @@ keybinds clear-defaults=true {
         bind "C" { NewTab; SwitchToMode "normal"; }
         bind "[" { SwitchToMode "scroll"; }
         bind "Ctrl a" { Write 2; SwitchToMode "normal"; }
-        bind "c" { NewTab; SwitchToMode "normal"; }
+        bind "c" { NewTab { cwd "~"; }; SwitchToMode "normal"; }
         bind "h" { MoveFocus "left"; SwitchToMode "normal"; }
         bind "j" { MoveFocus "down"; SwitchToMode "normal"; }
         bind "k" { MoveFocus "up"; SwitchToMode "normal"; }

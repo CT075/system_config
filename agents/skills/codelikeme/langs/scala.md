@@ -23,3 +23,16 @@ it. A trait that declares the method plain and an implementation that annotates
 it are two different members, and the collision comes back at whichever mixin
 site brings both instantiations together, which can be a file away from either
 of them.
+
+## sbt 2's `test` is incremental
+
+`sbt test` under sbt 2 runs only the suites it thinks changed, and says
+`success` for the subset. `sbt testFull` is the one that runs everything. The
+give-away in a restarted server's log is `No tests to run for Test / testQuick`;
+with a warm server there is no give-away at all, only a suspiciously short run
+and a suite count nobody read.
+
+Prefer `testFull` whenever the answer matters, and read the count it prints.
+`target/**/test-reports/TEST-*.xml` carries a `tests=` and a `timestamp=` per
+suite, which is how to find out after the fact which suites a green run
+actually covered.

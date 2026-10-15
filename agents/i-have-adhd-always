@@ -1,0 +1,8 @@
+Opt-in flag for the i-have-adhd plugin's always-on mode.
+
+setup-claude.sh links this to ~/.claude/.i-have-adhd-always. The plugin's
+SessionStart hook checks only that the path exists and never reads the
+contents, then injects the full ADHD ruleset at the top of every session.
+
+Delete the symlink to turn always-on off, or say "stop adhd mode" to turn it
+off for one session.

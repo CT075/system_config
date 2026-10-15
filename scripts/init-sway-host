@@ -132,6 +132,21 @@ launcher=$(choose '$launcher' 'program launcher, for $mod+p' "${launchers[@]}")
 filemanager=$(choose '$filemanager' 'file manager, for $mod+Shift+p then $mod+f' "${filemanagers[@]}")
 backlight=$(choose '$brightness_up/$brightness_down' 'backlight control' "${backlights[@]}")
 
+# $mod+d's layout picker is the launcher in dmenu mode, so one answer settles
+# both and there is nothing to keep in sync. Same shape as the backlight pair
+# below: the choice picks a program and the program decides the line.
+case ${launcher%% *} in
+  wofi)       menu='wofi --dmenu' ;;
+  fuzzel)     menu='fuzzel --dmenu' ;;
+  rofi)       menu='rofi -dmenu' ;;
+  bemenu-run) menu='bemenu' ;;
+  *)
+    menu=${launcher%% *}
+    echo "$menu isn't one this script knows a dmenu mode for, so \$menu got the"\
+      "bare command; check what flag it takes and edit it" >&2
+    ;;
+esac
+
 # The two halves of the backlight pair don't share a shape, so the choice
 # picks a program and the program decides both lines.
 #
@@ -166,6 +181,9 @@ set \$termbin $termbin
 set \$term $term
 set \$browser $browser
 set \$launcher $launcher
+# \$mod+d's display-layout picker: the same program, in the mode that reads
+# its choices on stdin.
+set \$menu $menu
 set \$filemanager $filemanager
 set \$brightness_up $brightness_up
 set \$brightness_down $brightness_down

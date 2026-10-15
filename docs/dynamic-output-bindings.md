@@ -1,7 +1,12 @@
 # Making $mod+w/e/r follow the monitors that are actually there
 
-Status: planned, not built. Written 2026-09-21, alongside the hotplug work in
-`scripts/display` and `scripts/present`.
+Status: partly built, 2026-09-22. Written 2026-09-21, alongside the hotplug
+work in `scripts/display` and `scripts/present`.
+
+The classroom half of this shipped as `display focus`, described under "What
+landed" below. The rest of the plan, resolving `left`/`main`/`right` from
+geometry and collapsing the three host literals into one preference list, is
+still unbuilt and still the plan.
 
 ## What's there now
 
@@ -27,17 +32,45 @@ answer, which is where each output currently sits. `swaymsg -t get_outputs`
 returns a `rect` per output, in logical pixels, after scale and transform. Sort
 by `rect.x` and "leftmost" falls out.
 
+## What landed
+
+The six bindings now go through `display focus <slot> [--move] [output]`, with
+the host literal passed as the trailing argument. Normally the script uses it
+and nothing has changed. While a layout has been picked by hand from the
+`$mod+d` menu, it ignores the literal and resolves the panels instead:
+
+```
+$mod+e  the internal panel
+$mod+r  the first active external
+$mod+w  nothing, with a note saying so
+```
+
+`extend`, `external` and the `auto` that hotplug runs set that flag;
+`mirror`, `internal` and `hotplug known` clear it. The flag is what somebody
+said, not what the outputs look like. "Is there an active external?" is true at
+a desk too, and swapping the keys there would be wrong, since the literals are
+right at a desk and the whole point of the host file is that it knows which
+screen has the keyboard in front of it.
+
+So the classroom failure below is gone and the other two are not. Worth knowing
+before building the rest: the escape hatch exists, and `main` resolving from a
+preference list is now an ergonomics fix rather than the only way to reach a
+strange monitor.
+
 ## Why it needs fixing
 
 Three failure modes, in increasing order of annoyance.
 
 Undocked, `$out_left` and `$out_main` both name a monitor that isn't plugged in.
-`$mod+w` and `$mod+e` become no-ops, sway logs a warning about an unknown output
-per press, and the only key that works is `$mod+r`.
+`$mod+w` and `$mod+e` become no-ops, and the only key that works is `$mod+r`.
+They are quiet no-ops since `display focus` took over, rather than a warning in
+sway's log per press, which makes them less alarming and no more useful.
 
 Docked at an unfamiliar desk, or plugged into a classroom projector, none of the
 three name the new panel. You can see the output, you can't focus it, and you
-can't throw a workspace onto it without going to the mouse.
+can't throw a workspace onto it without going to the mouse. This is the one
+`display focus` fixes, and only once you have told it so through `$mod+d`;
+pressing the keys before picking a layout still gets the literals.
 
 And the host file carries a hand-sync obligation with `hosts/pretender/kanshi`,
 which `scripts/init-sway-host` prints as a to-do at the end of every run:
@@ -113,17 +146,19 @@ both is the obvious shape if it grows past a single jq expression.
 
 ## What changes
 
-- New: `scripts/focus-output`.
-- `dotfiles/sway/config.d/64-bindings-output.conf`: six bindings rewritten, and
-  the comment about the host asserting geometry deleted, since it stops being
-  true.
+- `scripts/display`: fold the slot resolution into the existing `focus`
+  subcommand, which already takes `left|main|right` and already owns the output
+  enumeration. The separate `scripts/focus-output` the rest of this plan was
+  written around is no longer worth adding.
+- `dotfiles/sway/config.d/64-bindings-output.conf`: six trailing arguments
+  changed, and the comment about the host asserting geometry deleted, since it
+  stops being true.
 - `dotfiles/hosts/*/sway.conf`: `$out_left`/`$out_main`/`$out_right` replaced by
   one `$out_preference`. Nine host files, but only the ones with a `sway.conf`
   actually matter; `pretender` is currently the only one.
 - `scripts/init-sway-host`: generate `set $out_preference eDP-1` instead of the
   three `TODO` placeholders, and drop `$out_*` from the closing "still to fill
   in by hand" message. The kanshi profiles stay on that list.
-- `scripts/link-sway`: one more `link` line.
 
 ## Things to decide before building
 

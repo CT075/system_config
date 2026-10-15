@@ -17,6 +17,7 @@ links=(
   "agents/output-styles:output-styles"
   "agents/hooks:hooks"
   "claudeSettings.json:settings.json"
+  "agents/i-have-adhd-always:.i-have-adhd-always"
 )
 
 mkdir -p "$claude"
