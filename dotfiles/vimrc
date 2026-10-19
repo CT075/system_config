@@ -137,6 +137,10 @@ set tabstop=2
 set shiftwidth=2
 set expandtab
 
+" vimtex reindents the whole line whenever you type } ] or &, which wrecks
+" hand-placed indentation while typing. Keep o/O autoindent and ^F only.
+au FileType tex setlocal indentkeys=!^F,o,O
+
 hi clear SignColumn
 
 augroup CoqtailHighlights
