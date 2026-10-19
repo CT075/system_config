@@ -72,6 +72,9 @@ trust_level = "trusted"
 [projects."/home/cam/sys_base"]
 trust_level = "trusted"
 
+[projects."/home/cam/Documents/paper-staged-procs"]
+trust_level = "trusted"
+
 [[skills.config]]
 path = "/home/cam/.codex/plugins/cache/openai-curated-remote/work-pets/0.1.6/skills/create-pet/SKILL.md"
 enabled = false
